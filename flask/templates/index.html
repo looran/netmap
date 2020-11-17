@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Netmap - Networks list</title>
+</head>
+<body>
+    <h1>Netmap</h1>
+
+    Input data directory: {{ input_data_directory }}
+
+    <h2>Networks list</h2>
+    <ul>
+        {% for network in network_list %}
+        <li><a href="/map/{{ network }}">{{ network }}</a></li>
+        {% endfor %}
+    </ul>
+
+</body>
+</html>

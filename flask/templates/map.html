@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ network_name }}</title>
+    <script src="/static/gojs/{{ gojs_version }}"></script>
+    <script src="/static/gojs/RealtimeDragSelectingTool.js"></script>
+    <script src="/static/gojs/LinkLabelOnPathDraggingTool.js"></script>
+    <!-- <script src="/static/gojs/ParallelRouteLink.js"></script> XXX 20201113_1757 LG ParallelRouteLink is crashing -->
+</head>
+<body style="margin: auto; width: fit-content;">
+
+    <div id="view" style="display: block; text-align: center;">
+        <div id="map" style="width:1480px; height:720px; background-color: #DAE4E4;"></div>
+
+        <div id="controls" style="height: 145px; margin: 5px;">
+            <div id="overview" style="width:300px; height:145px; float:left; z-index:1; background:white; border: solid 1px #7986cb;"></div>
+            <div id="targetinfo" style="float:right; z-index:1; background:white; font-family:monospace;">
+                <div id="targetinfo_content" style="width:550px; height:145px; border: solid 1px #7986cb; text-align:left; overflow: auto;">
+                    <div id="targetinfo_title" style="font-weight:bold;">
+                        <span id="targetinfo_category"></span>
+                        <span id="targetinfo_name"></span>
+                    </div>
+                    <div id="targetinfo_description" style="font-size:xx-small;"></div>
+                    <div id="targetinfo_links"></div>
+                </div>
+                <div id="targetinfo_help" style="font-size:xx-small; color:grey; text-align:right;">(right-click on graph to freeze)</div>
+            </div>
+            <div id="buttons" style="display: block; margin-left: auto; margin-right: auto;">
+                <div id="tools"  style="display: block;">
+                    <button id="download_png" disabled="disabled" title="XXX 20201110_1759 LG: PNG download is limiting graph size to 2000x2000, why ?">Download PNG</button>
+                    <button id="download_svg">Download SVG</button>
+                    <button id="fullscreen">Fullscreen</button>
+                    <button id="zoom_to_fit">Zoom to fit</button>
+                    <button id="zoom_to_selection">Zoom to selection</button>
+                </div>
+                <div id="layout" style="margin: 5px;">
+                    <select id="layout_sel" onchange="change_layout(this.value)">
+                        <option>layout tree</option>
+                        <option>layout circular</option>
+                        <option>layout forcedirected</option>
+                        <option>layout forcedirected strong</option>
+                        <option>layout layereddigraph</option>
+                    </select>
+                    <select id="link_curve_sel" onchange="change_link_curve(this.value)">
+                        <option>link curve jumpgap</option>
+                        <option>link curve bezier </option>
+                        <option>link curve jumpover</option>
+                    </select>
+                    <select id="link_routing_sel" onchange="change_link_routing(this.value)">
+                        <option>link route orthogonal</option>
+                        <option>link route normal</option>
+                        <option>link route avoidnodes</option>
+                    </select>
+                </div>
+                <div id="search" style="display: block; margin:5px;">
+                    <input type="search" id="search_entry" onkeypress="if (event.keyCode === 13) searchDiagram()">
+                    <button onclick="searchDiagram()">Search</button>
+                </div>
+                <div id="server" style="margin: 5px;">
+                    <button id="save_nodes_position">Save positions and settings to server</button>
+                </div>
+                <div id="message" style="font-family:monospace;"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="frozen_targetinfo_list" style="background:white; font-family:monospace; border: solid 1px #7986cb; text-align:left; margin-top: 20px;"></div>
+
+    <div id="help">
+        <h3>Keyboard shortcuts on map</h3>
+        <ul>
+            <li>Ctrl + z: undo</li>
+            <li>Ctrl + y: redo</li>
+            <li>/: select search box</li>
+        </ul>
+        <h3>Mouse actions on map</h3>
+        <ul>
+            <li>Mouse wheel right/left/top/down scrolls the graph</li>
+            <li>Ctrl + Mouse wheel to zoom in and out</li>
+            <li>On background
+            <ul>
+                <li>Left-click then drag scrolls the graph</li>
+                <li>Long left-click then drag enables rectangle multi selection</li>
+                <li>Right-click freezes or unfrezes the target informations box</li>
+            </ul>
+            </li>
+            <li>On a node
+            <ul>
+                <li>Left-click selects the node highlights all connected links and nodes</li>
+                <li>Left-click on a big node "-" sign (bottom left) collapses the big node</li>
+                <li>Once selected, a node can be moved</li>
+                <li>Right-click freezes the target informations box with node informations, and copies node name to clipboard</li>
+            </ul>
+            <li>On a link
+            <ul>
+                <li>Left-click selects the link and highlights the two end nodes</li>
+                <li>Once selected, a link can be moved</li>
+                <li>Right-click freezes the target informations box with link informations, and copies link name to clipboard</li>
+            </ul>
+            </li>
+        </ul>
+    </div>
+
+    <p>
+        <a href="/">back to Network list</a>
+    </p>
+
+    <script type="text/javascript">
+    /*
+	 * PNG/SVG image generation and download callbacks
+     */
+    function date_now() {
+        const zeroPad = (num, places) => String(num).padStart(places, '0');
+        var d = new Date();
+        return d.getFullYear()+zeroPad(d.getMonth(),2)+zeroPad(d.getDate(),2)+"_"+zeroPad(d.getHours(),2)+zeroPad(d.getMinutes(),2);
+    }
+    function cb_blob_ready(blob, imgtype) {
+        var url = window.URL.createObjectURL(blob);
+        var filename = "netmap_{{ network_name }}_"+date_now();
+
+        if (imgtype == "svg") {
+            filename = filename + ".svg"
+        } else {
+            filename = filename + ".png"
+        }
+
+        var a = document.createElement("a");
+        a.style = "display: none";
+        a.href = url;
+        a.download = filename;
+
+        // IE 11
+        if (window.navigator.msSaveBlob !== undefined) {
+            window.navigator.msSaveBlob(blob, filename);
+            return;
+        }
+
+        document.body.appendChild(a);
+        requestAnimationFrame(function() {
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        });
+    }
+    function download_png() {
+        var blob = diag.makeImageData({ background: "white", scale: 1, padding: 10, returnType: "blob", callback: cb_blob_ready });
+    }
+    function download_svg() {
+        var svg = diag.makeSvg({ scale: 1, background: "white", padding: 10 });
+        var svgstr = new XMLSerializer().serializeToString(svg);
+        var blob = new Blob([svgstr], { type: "image/svg+xml" });
+        cb_blob_ready(blob, "svg");
+    }
+    </script>
+
+    <script type="text/javascript">
+    /*
+     * Fullscreen and Zoom
+     */ 
+    function viewFullScreen(show) {
+        if (show === undefined) show = !isFullScreen();
+        canvas = document.getElementById("map");
+        if (show) {
+            if (canvas.requestFullscreen) canvas.requestFullscreen();
+            else if (canvas.webkitRequestFullScreen) canvas.webkitRequestFullScreen();
+            else if (canvas.mozRequestFullScreen) canvas.mozRequestFullScreen();
+            else if (canvas.msRequestFullscreen) canvas.msRequestFullscreen();
+        } else {
+            if (document.exitFullscreen) document.exitFullscreen();
+            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+            else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+            else if (document.msExitFullscreen) document.msExitFullscreen();
+        }
+    }
+    function zoomToFit() {
+        diag.zoomToFit();
+    }
+    function zoomToSelection() {
+        diag.zoomToRect(diag.computePartsBounds(diag.selection, includeLinks=true));
+    }
+    </script>
+
+    <script type="text/javascript">
+    /*
+     * Search
+     */ 
+    function searchDiagram() {
+        var input = document.getElementById("search_entry");
+        if (!input) return;
+        diag.focus();
+
+        diag.startTransaction("highlight search");
+        if (input.value) {
+            var regex = new RegExp(input.value, "i");
+            var results_links = diag.findLinksByExample({ text: regex });
+            var results_nodes = diag.findNodesByExample({ text: regex });
+            var results = (new go.List()).addAll(results_links).addAll(results_nodes)
+            diag.highlightCollection(results);
+            if (results.count > 0)
+                diag.zoomToRect(diag.computePartsBounds(results, includeLinks=true));
+        } else {
+            diag.clearHighlighteds();
+        }
+        diag.commitTransaction("highlight search");
+    }
+    </script>
+
+    <script type="text/javascript">
+    /*
+     * Layout settings
+     */
+    function reset_nodes_positions() {
+        diag.nodes.each(function(n) {
+            n.data.is_layout_positioned = "true";
+            n.isLayoutPositioned = true;
+        });
+    }
+    function change_layout(layout_name) {
+        reset_nodes_positions();
+        switch (layout_name) {
+        case "layout tree":
+            layout = $(go.TreeLayout, {
+                //alignment: go.TreeLayout.AlignmentBus,
+            });
+            break;
+        case "layout circular":
+            layout = $(go.CircularLayout);
+            break;
+        case "layout forcedirected":
+            layout = $(go.ForceDirectedLayout, {
+                maxIterations: 500,
+            });
+            break;
+        case "layout forcedirected strong":
+            layout = $(go.ForceDirectedLayout, {
+                defaultElectricalCharge: 600,
+                maxIterations: 500,
+            });
+            break;
+        case "layout layereddigraph":
+            layout = $(go.LayeredDigraphLayout);
+            break;
+        }
+        diag.commit(function(d) {
+            diag.layout = layout;
+        }, "layout change");
+        _netmap_settings['layout'] = layout_name;
+        document.getElementById("layout_sel").value = layout_name;
+    }
+    function change_link_curve(link_curve) {
+        switch (link_curve) {
+        case "link curve bezier":
+            linktemplate_stream.curve = go.Link.Bezier;
+            break;
+        case "link curve jumpgap":
+            linktemplate_stream.curve = go.Link.JumpGap;
+            break;
+        case "link curve jumpover":
+            linktemplate_stream.curve = go.Link.JumpOver;
+            break;
+        }
+        set_link_template();
+        _netmap_settings['link curve'] = link_curve;
+        document.getElementById("link_curve_sel").value = link_curve;
+    }
+    function change_link_routing(link_routing) {
+        switch (link_routing) {
+        case "link route orthogonal":
+            linktemplate_stream.routing = go.Link.Orthogonal;
+            break;
+        case "link route normal":
+            linktemplate_stream.routing = go.Link.Normal;
+            break;
+        case "link route avoidnodes":
+            linktemplate_stream.routing = go.Link.AvoidsNodes;
+            break;
+        }
+        set_link_template();
+        _netmap_settings['link routing'] = link_routing;
+        document.getElementById("link_routing_sel").value = link_routing;
+    }
+    function set_link_template() {
+        diag.commit(function(d) {
+            var templmap = new go.Map();
+            templmap.add("stream", linktemplate_stream);
+            diag.linkTemplateMap = templmap;
+        }, "set link template");
+    }
+    </script>
+
+    <script type="text/javascript">
+    /*
+     * Save nodes position to server
+     */
+    function saveNodesPosition() {
+		var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                if (xhr.status == 200)
+                    message_show(xhr.responseText, 4);
+                else
+                    message_show("error: " + xhr.status + " " + xhr.responseText + "<br/>Nothing was saved", 4, "red", "medium");
+            }
+        }
+		xhr.open("POST", "save/", true);
+		xhr.setRequestHeader("Content-Type", "application/json");
+        jobj = JSON.parse(diag.model.toJson())
+        jobj.netmap_settings = _netmap_settings;
+		xhr.send(JSON.stringify(jobj));
+    }
+    </script>
+
+    <script type="text/javascript">
+    /*
+     * Target informations box
+     */
+    var _targetinfo_frozen = false;
+    var _frozen_obj = null;
+    function update_targetinfo(obj, force=false) {
+        if (_targetinfo_frozen == false || force) {
+            _frozen_obj = obj;
+            let category = obj.data.category;
+            let name = obj.data.text;
+            let description = "";
+            switch (obj.data.category) {
+            case "node":
+                obj.memberParts.each(function(m) {
+                    if (m instanceof go.Node) {
+                        m.findLinksConnected().each(function(l) {
+                            target = l.fromNode == m ? l.toNode : l.fromNode
+                            description += l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;" + target.data.text
+                            if (target.containingGroup !== null)
+                                description += " : " + target.containingGroup.data.text;
+                            description += "<br/>";
+                        });
+                    }
+                });
+                break;
+            case "node_ip":
+                obj.findLinksConnected().each(function(l) {
+                    target = l.fromNode == obj ? l.toNode : l.fromNode
+                    description += l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;" + target.data.text
+                    if (target.containingGroup !== null)
+                        description += " : " + target.containingGroup.data.text;
+                    description += "<br/>";
+                });
+                break;
+            case "stream":
+                description += "<u>from</u>: " + obj.fromNode.data.text;
+                if (obj.fromNode.containingGroup !== null)
+                    description += " : " + obj.fromNode.containingGroup.data.text;
+                description += "<br/>";
+                description += "<u>to</u>: " + obj.toNode.data.text;
+                if (obj.toNode.containingGroup !== null)
+                    description += " : " + obj.toNode.containingGroup.data.text;
+                description += "<br/>";
+                break;
+            }
+            document.getElementById("targetinfo_category").textContent = category;
+            document.getElementById("targetinfo_name").textContent = name;
+            document.getElementById("targetinfo_description").innerHTML = description;
+        }
+    }
+    function copy_to_clipboard(text) {
+        const el = document.createElement('textarea');
+        el.value = text;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        message_show("copied to clipboard", 2)
+    }
+    function freeze_targetinfo(evt, obj) {
+        if (_targetinfo_frozen == false || obj === undefined || obj == _frozen_obj)
+            _targetinfo_frozen = ! _targetinfo_frozen;
+        else
+            update_targetinfo(obj, force=true);
+        if (_targetinfo_frozen == true) {
+            copy_to_clipboard(document.getElementById("targetinfo_name").textContent);
+            var name = document.getElementById("targetinfo_title").cloneNode(true);
+            name.textContent = date_now() + " " + name.textContent;
+            document.getElementById("frozen_targetinfo_list").appendChild(name);
+            var description = document.getElementById("targetinfo_description").cloneNode(true);
+            document.getElementById("frozen_targetinfo_list").appendChild(description);
+        }
+    }
+    </script>
+
+    <script type="text/javascript">
+    /*
+     * Message show
+     */
+    function message_show(message, timeout=4, color="grey", size="small") {
+        e = document.getElementById("message");
+        //e.textContent = message;
+        e.innerHTML = message;
+        e.style.color = color;
+        e.style.fontSize = size;
+        if (timeout !== null)
+            setTimeout(function() { message_show(""); }, timeout * 1000);
+    }
+    </script>
+
+    <script type="text/javascript">
+    /*
+     * main, graph generation
+     */
+    map_json = {{ map_dict|safe }};
+    if (map_json['netmap_settings'] == undefined) {
+        var _netmap_settings = {
+            'layout': "layout tree",
+            'link curve': "link curve jumpgap",
+            'link routing': "link route orthogonal",
+        }
+    } else {
+        var _netmap_settings = map_json['netmap_settings'];
+    }
+
+    var $ = go.GraphObject.make;
+    var diag = $(go.Diagram, "map",
+        {
+            "toolManager.dragSelectingTool": $(RealtimeDragSelectingTool, { isPartialInclusion: true }),
+            "draggingTool.isComplexRoutingRealtime": false,
+            "undoManager.isEnabled": true,
+            initialAutoScale: go.Diagram.Uniform,
+            contextClick: freeze_targetinfo,
+            click: function(e) {
+                e.diagram.commit(function(d) { d.clearHighlighteds(); }, "clear highlighteds");
+            },
+            "LayoutCompleted": function(e) {
+                message_show("loaded {{ network_statistics.nodes_count }} nodes<br/>loaded {{ network_statistics.streams_count }} streams", 6);
+                zoomToFit();
+            },
+        },
+    );
+    diag.toolManager.mouseMoveTools.insertAt(0, new LinkLabelOnPathDraggingTool());
+    change_layout(_netmap_settings["layout"]);
+
+    diag.add( 
+        $(go.Part, "Auto",
+            { name: "title", position: new go.Point(0, -200), background: "gray", padding: 4, zOrder: 3 },
+            $(go.Panel, "Vertical",
+                { background: "#E1E1E1", padding: 4, defaultAlignment: go.Spot.Top  },
+                $(go.TextBlock, "Network map {{ network_name }}", { font: "bold 32pt sans-serif", stroke: "black" }),
+                $(go.TextBlock, { text: "Network data updated on {{ network_statistics.last_modification }}", margin: 1, font: "10px sans-serif", alignment: go.Spot.Right }),
+            ),
+        )
+    );
+
+    var nodetemplate_node = $(go.Node, "Auto",
+        {
+            locationSpot: go.Spot.Center,
+            zOrder: 2,
+            mouseEnter: function(e, node) { update_targetinfo(node); },
+            contextClick: freeze_targetinfo,
+            click: function(e, node) {
+                node.diagram.commit(function(d) {
+                    d.clearHighlighteds();
+                    node.findLinksConnected().each(function(l) { l.isHighlighted = true; });
+                    node.findNodesConnected().each(function(n) {
+                        n.isHighlighted = true;
+                        if (n.containingGroup !== null)
+                            n.containingGroup.isHighlighted = true;
+                    });
+                }, "clear highlighteds");
+            },
+        },
+        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify), // store location in gojs diagram model
+        new go.Binding("isLayoutPositioned", "is_layout_positioned", function(v) { return v == 'true'}), // indicates if this node should be positioned by automatic layout
+        $(go.Shape,
+            { figure: "Rectangle",  },
+            new go.Binding("fill", "isHighlighted", function(h) { return h ? "orange" : "grey" }).ofObject(),
+        ),
+        $(go.TextBlock,
+            { margin: 5 },
+            new go.Binding("text", "text"),
+            new go.Binding("font", "font"),
+            new go.Binding("isUnderline", "isSelected", function(s) { return s ? true : false }).ofObject(""),  // "" is the root visual element, the Node itself
+        ),
+    );
+
+    var tempnmap = new go.Map();
+    tempnmap.add("node", nodetemplate_node);
+    tempnmap.add("node_ip", nodetemplate_node);
+    diag.nodeTemplateMap = tempnmap;
+
+    diag.groupTemplate = $(go.Group, "Auto",
+        {
+            layout: $(go.TreeLayout, ),
+            zOrder: 0,
+            mouseEnter: function(e, group) { update_targetinfo(group); },
+            contextClick: freeze_targetinfo,
+            click: function(e, group) {
+                group.diagram.commit(function(d) {
+                    d.clearHighlighteds();
+                    group.memberParts.each(function(m) {
+                        if (m instanceof go.Node) {
+                            m.findNodesConnected().each(function(n) { 
+                                n.isHighlighted = true;
+                                if (n.containingGroup !== null)
+                                    n.containingGroup.isHighlighted = true;
+                            });
+                            m.findLinksConnected().each(function(l) { l.isHighlighted = true; });
+                        }
+                    });
+                }, "highlight group neighbours");
+            },
+        },
+        new go.Binding("location", "loc", go.Point.parse).makeTwoWay(go.Point.stringify), // store location in gojs diagram model
+        new go.Binding("isLayoutPositioned", "is_layout_positioned", function(v) { return v == 'true'}), // indicates if this node should be ignored by automatic layout
+        new go.Binding("isSubGraphExpanded", "is_subgraph_expanded", function(v) { return v == 'true'}).makeTwoWay(function(v) { return v == true ? 'true' : 'false' }), // indicates if graph should be expanded
+        $(go.Shape, "RoundedRectangle", 
+            {
+                parameter1: 14,
+                stroke: "black",
+            },
+            new go.Binding("fill", "isHighlighted", function(h) { return h ? "gold" : "lightgrey" }).ofObject(),
+        ),
+        $(go.Panel, "Vertical",
+            $(go.Placeholder,   // represents the area of all member parts,
+                { padding: 5}),
+            $(go.Panel, "Horizontal",
+                $("SubGraphExpanderButton"),
+                $(go.TextBlock,
+                    { margin: new go.Margin(6, 0, 0, 10), font: "Bold 12pt Sans-Serif" },
+                    new go.Binding("text", "text"),
+                    new go.Binding("font", "font")),
+            ),
+        ),
+    );
+
+    highlight_node = function(n) {
+        if (n == null) return
+        n.isHighlighted = true;
+        if (n.containingGroup !== null)
+            n.containingGroup.isHighlighted = true;
+    }
+
+    var linktemplate_stream = $(go.Link,
+        {
+            zOrder: 1,
+            mouseEnter: function(e, link) { update_targetinfo(link); },
+            contextClick: freeze_targetinfo,
+            click: function(e, link) {
+                link.diagram.commit(function(d) {
+                    d.clearHighlighteds();
+                    highlight_node(link.fromNode);
+                    highlight_node(link.toNode);
+                }, "set link highlighteds");
+            },
+            selectionAdorned: false, // we handle link selection by binding 'isSelected' property bellow
+            // XXX 20201115_1926 LG this causes debug messages "Change not within a transaction: !d position: Link#..."
+        },
+        $(go.Shape,
+            new go.Binding("stroke", "isHighlighted", function(h) { return h ? "orange" : "rgba(100, 100, 100, 0.52)" }).ofObject(),
+            new go.Binding("stroke", "isSelected", function(s) { return s ? "dodgerblue" : "rgba(100, 100, 100, 0.52)" }).ofObject(""),  // "" is the root visual element, the Link itself
+            new go.Binding("strokeWidth", "isHighlighted", function(h) { return h ? 5 : 1; }).ofObject(),
+            new go.Binding("strokeWidth", "isSelected", function(s) { return s ? 5 : 1 }).ofObject(""),  // "" is the root visual element, the Link itself
+        ),
+        $(go.TextBlock, "middle",
+            { 
+                _isLinkLabel: true, // label object marker for LinkLabelOnPathDraggingTool
+                segmentIndex: NaN,
+                segmentFraction: .5,
+                segmentOrientation: go.Link.OrientUpright
+            },
+            new go.Binding("background", "color"),
+            new go.Binding("font", "font"),
+            new go.Binding("text", "text"),
+            new go.Binding("stroke", "isHighlighted", function(h) { return h ? "#9e0000" : "black" }).ofObject(),
+            new go.Binding("isUnderline", "isSelected", function(s) { return s ? true : false }).ofObject(""),  // "" is the root visual element, the Link itself
+        ),
+    );
+    change_link_curve(_netmap_settings["link curve"]);
+    change_link_routing(_netmap_settings["link routing"]);
+
+    diag.model = go.Model.fromJson(map_json);
+
+    overview = $(go.Overview, "overview", {
+            drawsTemporaryLayers: false,
+            observed: diag,
+            contentAlignment: go.Spot.Center,
+    });
+
+    document.getElementById("download_png").addEventListener("click", download_png);
+    document.getElementById("download_svg").addEventListener("click", download_svg);
+    document.getElementById("fullscreen").addEventListener("click", viewFullScreen);
+    document.getElementById("zoom_to_fit").addEventListener("click", zoomToFit);
+    document.getElementById("zoom_to_selection").addEventListener("click", zoomToSelection);
+    document.getElementById("save_nodes_position").addEventListener("click", saveNodesPosition);
+    document.getElementById("map").onkeyup = function(e) {
+        if (e.which == 191) { // '/'
+            document.getElementById("search_entry").focus();
+            document.getElementById("search_entry").select();
+        }
+    };
+    </script>
+</body>
+</html
