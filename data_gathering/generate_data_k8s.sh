@@ -14,10 +14,13 @@ trace() { echo "# $*" >&2; "$@"; }
 
 set -e
 
-[ $# -lt 1 -o "$1" = "-h" ] && echo "usage: $0 [-T] <output_directory>" && exit 1
+[ $# -lt 1 -o "$1" = "-h" ] && echo "usage: $0 [-T] <output_directory> <this_host_ip>" && exit 1
 do_tcpdump=1
 [ "$1" == "-T" ] && do_tcpdump=0 && shift
 out_dir="$1"
+host_ip="$2"
+now=$(date +%Y%m%d_%H%M%S)
+echo "$now $host_ip $*" >> "$out_dir/generate_data_k8s_${now}_${host_ip}.log"
 SSH_NODES_CMD=${SSH_NODES_CMD:-"ssh"}
 echo "SSH_NODES_CMD=$SSH_NODES_CMD"
 

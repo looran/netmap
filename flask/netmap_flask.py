@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent / 'lib'))
+import netmap
 import netmap_cache
 
 run_dir = Path("run").resolve()
@@ -34,7 +35,7 @@ def index_view():
         raise Exception("NETMAP_DEBUG environment variable must be set")
     input_dir = Path(os.environ['NETMAP_INPUT_DATA_DIRECTORY']).resolve()
     network_list = [str(x.name) for x in input_dir.iterdir() if x.is_dir()]
-    return flask.render_template('index.html', input_data_directory=input_dir, network_list=network_list)
+    return flask.render_template('index.html', input_data_directory=input_dir, network_list=network_list, program_header=netmap.PROGRAM_HEADER)
 
 @app.route('/map/')
 def netmap_empty_view():
@@ -43,11 +44,17 @@ def netmap_empty_view():
 @app.route('/map/<network_name>/')
 def netmap_view(network_name):
     input_dir = Path(os.environ['NETMAP_INPUT_DATA_DIRECTORY'])
+    anonymize_hex_salt = os.environ['NETMAP_ANONYMIZE_HEX_SALT']
+    if len(anonymize_hex_salt) == 0:
+        network_name_displayed = network_name
+        anonymize_hex_salt = None
+    else:
+        network_name_displayed = "%s (anononymized)" % network_name
     debug = int(os.environ['NETMAP_DEBUG'])
     network_dir = input_dir / network_name
 
     try:
-        nm = netmap_cache.Netmap_cache(network_dir, run_dir, debug=debug)
+        nm = netmap_cache.Netmap_cache(network_dir, run_dir, anonymize_hex_salt=anonymize_hex_salt, debugval=debug)
     except Exception as e:
         print("Exception: %s" % e)
         print("redirecting to index")
@@ -69,12 +76,16 @@ def netmap_view(network_name):
         map_copy_settings(map_dict, saved_attributes)
 
     if app.debug:
-        print(map_dict)
+        json_debug = json.dumps(map_dict, indent=4, sort_keys=True)
+        print(json_debug)
+        json_debug_file = run_dir / "debug.json"
+        json_debug_file.write_text(json_debug)
+        print("wrote json to %s" % json_debug_file)
         gojs_version = "go-debug.js"
     else:
         gojs_version = "go.js"
 
-    return flask.render_template('map.html', network_name=network_name, map_dict=map_dict, gojs_version=gojs_version, network_statistics=nm.stats)
+    return flask.render_template('map.html', network_name=network_name_displayed, map_dict=map_dict, gojs_version=gojs_version, network_statistics=nm.stats, program_header=netmap.PROGRAM_HEADER)
 
 @app.route('/map/<network_name>/save/', methods=["POST"])
 def save(network_name):

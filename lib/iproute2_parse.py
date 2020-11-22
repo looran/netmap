@@ -76,6 +76,8 @@ class Iproute2_parse(object):
                     s['local_ip'], s['local_port'] = s['local'].rsplit(':', 1)
                     s['remote_ip'], s['remote_port'] = s['remote'].rsplit(':', 1)
                     s['local_ip'] = s['local_ip'].replace('[', '').replace(']', '').replace('::ffff:','')
+                    if '%' in s['local_ip']:
+                        s['local_ip'], s['local_iface'] = s['local_ip'].split('%')
                     s['remote_ip'] = s['remote_ip'].replace('[', '').replace(']', '').replace('::ffff:','')
                     if s['local_port'].isdigit():
                         s['local_port'] = int(s['local_port'])

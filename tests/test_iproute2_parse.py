@@ -10,11 +10,11 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent / 'lib'))
 from iproute2_parse import Iproute2_parse
 
-INPUT_DATA_DIRECTORY = Path(__file__).resolve().parent.parent / 'demo_data' / 'network1'
+INPUT_DATA_DIRECTORY = Path(__file__).resolve().parent.parent / 'demo_data'
 print("INPUT_DATA_DIRECTORY = %s" % INPUT_DATA_DIRECTORY)
 
 EXPECTED_RESULTS = {
-    'host_192.168.0.3_cmd_ip-address-show.txt': {
+    'network1/host_192.168.0.3_cmd_ip-address-show.txt': {
         'bond0': {'ip': [], 'link_addr': '12:34:56:67:90:01', 'link_type': 'ether', 'master': '', 'name': 'bond0', 'num': '2'},
         'dummy0': {'ip': [], 'link_addr': '11:11:11:11:11:11', 'link_type': 'ether', 'master': '', 'name': 'dummy0', 'num': '3'},
         'enp0s20f0u2u1': {'ip': [], 'link_addr': '44:44:44:44:44:44', 'link_type': 'ether', 'master': '', 'name': 'enp0s20f0u2u1', 'num': '139'},
@@ -27,12 +27,12 @@ EXPECTED_RESULTS = {
         'vboxnet0': {'ip': ['192.168.56.1', 'fe80::800:27ff:fe00:0'], 'link_addr': '22:22:22:22:22:22', 'link_type': 'ether', 'master': '', 'name': 'vboxnet0', 'num': '136'},
         'vboxnet1': {'ip': [], 'link_addr': '33:33:33:33:33:33', 'link_type': 'ether', 'master': '', 'name': 'vboxnet1', 'num': '137'}
     },
-    'host_192.168.0.3_cmd_ip-neighbour-show.txt': {
+    'network1/host_192.168.0.3_cmd_ip-neighbour-show.txt': {
         '192.168.0.1': {'interface': 'enp0s31f6', 'link_addr': '66:66:66:66:66:66', 'status': 'DELAY'},
         '192.168.0.2': {'interface': 'enp0s31f6', 'link_addr': '77:77:77:77:77:77', 'status': 'STALE'},
         '192.168.0.9': {'interface': 'enp0s31f6', 'link_addr': '88:88:88:88:88:88', 'status': 'REACHABLE'}
     },
-    'host_192.168.0.3_cmd_ss-anp.txt': [
+    'network1/host_192.168.0.3_cmd_ss-anp.txt': [
         {'local': ['rtnl', 'chrome/22367'], 'netid': 'nl', 'process': '', 'recvq': '0', 'remote': ['*'], 'sendq': '0', 'state': 'UNCONN'},
         {'local': ['rtnl', 'kernel'], 'netid': 'nl', 'process': '', 'recvq': '0', 'remote': ['*'], 'sendq': '0', 'state': 'UNCONN'},
         {'local': ['rtnl', 'chrome/22398'], 'netid': 'nl', 'process': '', 'recvq': '0', 'remote': ['*'], 'sendq': '0', 'state': 'UNCONN'},
@@ -49,25 +49,44 @@ EXPECTED_RESULTS = {
         {'fd': '47', 'local': '192.168.0.3:47670', 'local_ip': '192.168.0.3', 'local_port': 47670, 'netid': 'tcp', 'pid': '18601', 'process': 'users:(("firefox",pid=18601,fd=47))', 'process_name': 'firefox', 'recvq': '0', 'remote': '61.200.0.167:443', 'remote_ip': '61.200.0.167', 'remote_port': 443, 'sendq': '0', 'state': 'ESTAB'},
         {'local': '192.168.0.3:57400', 'local_ip': '192.168.0.3', 'local_port': 57400, 'netid': 'tcp', 'process': '', 'recvq': '0', 'remote': '41.58.204.138:443', 'remote_ip': '41.58.204.138', 'remote_port': 443, 'sendq': '0', 'state': 'TIME-WAIT'}
     ],
+    'unit_tests/host_192.168.0.1_cmd_ss-anp.txt': [
+        {'fd': '5', 'local': '127.0.0.1:1031', 'local_ip': '127.0.0.1', 'local_port': 1031, 'netid': 'tcp', 'pid': '26715', 'process': 'users:(("ssh",pid=26715,fd=5))', 'process_name': 'ssh', 'recvq': '0', 'remote': '0.0.0.0:*', 'remote_ip': '0.0.0.0', 'remote_port': '*', 'sendq': '128', 'state': 'LISTEN'},
+        {'fd': '3', 'local': '127.0.0.1:1032', 'local_ip': '127.0.0.1', 'local_port': 1032, 'netid': 'tcp', 'pid': '5090', 'process': 'users:(("autossh",pid=5090,fd=3))', 'process_name': 'autossh', 'recvq': '0', 'remote': '0.0.0.0:*', 'remote_ip': '0.0.0.0', 'remote_port': '*', 'sendq': '1', 'state': 'LISTEN'},
+        {'local': '127.0.0.1:4949', 'local_ip': '127.0.0.1', 'local_port': 4949, 'netid': 'tcp', 'process': 'users:(("/usr/sbin/munin",pid=29361,fd=5),("munin-node",pid=9344,fd=5))', 'recvq': '0', 'remote': '0.0.0.0:*', 'remote_ip': '0.0.0.0', 'remote_port': '*', 'sendq': '128', 'state': 'LISTEN'},
+        {'fd': '13', 'local': '127.0.0.53%lo:53', 'local_ip': '127.0.0.53', 'local_iface': 'lo', 'local_port': 53, 'netid': 'tcp', 'pid': '801', 'process': 'users:(("systemd-resolve",pid=801,fd=13))', 'process_name': 'systemd-resolve', 'recvq': '0', 'remote': '0.0.0.0:*', 'remote_ip': '0.0.0.0', 'remote_port': '*', 'sendq': '128', 'state': 'LISTEN'},
+        {'fd': '6', 'local': '127.0.0.1:56952', 'local_ip': '127.0.0.1', 'local_port': 56952, 'netid': 'tcp', 'pid': '26715', 'process': 'users:(("ssh",pid=26715,fd=6))', 'process_name': 'ssh', 'recvq': '59504', 'remote': '127.0.0.1:22', 'remote_ip': '127.0.0.1', 'remote_port': 22, 'sendq': '0', 'state': 'ESTAB'},
+        {'fd': '3', 'local': '192.168.0.2:22', 'local_ip': '192.168.0.2', 'local_port': 22, 'netid': 'tcp', 'pid': '29123', 'process': 'users:(("sshd",pid=29123,fd=3))', 'process_name': 'sshd', 'recvq': '0', 'remote': '192.168.0.4:37094', 'remote_ip': '192.168.0.4', 'remote_port': 37094, 'sendq': '216', 'state': 'ESTAB'},
+        {'fd': '6', 'local': '127.0.0.1:1032', 'local_ip': '127.0.0.1', 'local_port': 1032, 'netid': 'tcp', 'pid': '5090', 'process': 'users:(("autossh",pid=5090,fd=6))', 'process_name': 'autossh', 'recvq': '0', 'remote': '127.0.0.1:48480', 'remote_ip': '127.0.0.1', 'remote_port': 48480, 'sendq': '0', 'state': 'ESTAB'},
+        {'fd': '5', 'local': '127.0.0.1:34566', 'local_ip': '127.0.0.1', 'local_port': 34566, 'netid': 'tcp', 'pid': '5090', 'process': 'users:(("autossh",pid=5090,fd=5))', 'process_name': 'autossh', 'recvq': '0', 'remote': '127.0.0.1:1031', 'remote_ip': '127.0.0.1', 'remote_port': 1031, 'sendq': '0', 'state': 'ESTAB'},
+        {'fd': '3', 'local': '192.168.0.2:38134', 'local_ip': '192.168.0.2', 'local_port': 38134, 'netid': 'tcp', 'pid': '19220', 'process': 'users:(("ssh",pid=19220,fd=3))', 'process_name': 'ssh', 'recvq': '0', 'remote': '192.168.0.1:22', 'remote_ip': '192.168.0.1', 'remote_port': 22, 'sendq': '0', 'state': 'ESTAB'},
+        {'fd': '8', 'local': '127.0.0.1:48480', 'local_ip': '127.0.0.1', 'local_port': 48480, 'netid': 'tcp', 'pid': '26715', 'process': 'users:(("ssh",pid=26715,fd=8))', 'process_name': 'ssh', 'recvq': '0', 'remote': '127.0.0.1:1032', 'remote_ip': '127.0.0.1', 'remote_port': 1032, 'sendq': '0', 'state': 'ESTAB'},
+    ],
 }
 
 class Iproute2_parse_unittest(unittest.TestCase):
     def test_ip_address_show(self):
         Iproute2_parse.DEBUG = False
-        cmdfile = "host_192.168.0.3_cmd_ip-address-show.txt"
+        cmdfile = "network1/host_192.168.0.3_cmd_ip-address-show.txt"
         interfaces = Iproute2_parse.ip_address_show((INPUT_DATA_DIRECTORY / cmdfile).read_text())
         self.assertEqual(EXPECTED_RESULTS[cmdfile], interfaces)
 
     def test_ip_neighbour_show(self):
         Iproute2_parse.DEBUG = False
-        cmdfile = "host_192.168.0.3_cmd_ip-neighbour-show.txt"
+        cmdfile = "network1/host_192.168.0.3_cmd_ip-neighbour-show.txt"
         interfaces = Iproute2_parse.ip_neighbour_show((INPUT_DATA_DIRECTORY / cmdfile).read_text())
         self.assertEqual(EXPECTED_RESULTS[cmdfile], interfaces)
 
     def test_ss(self):
         self.maxDiff = None
         Iproute2_parse.DEBUG = False
-        cmdfile = "host_192.168.0.3_cmd_ss-anp.txt"
+        cmdfile = "network1/host_192.168.0.3_cmd_ss-anp.txt"
+        streams = Iproute2_parse.ss((INPUT_DATA_DIRECTORY / cmdfile).read_text())
+        self.assertEqual(EXPECTED_RESULTS[cmdfile], streams)
+
+    def test_ss_address_with_percents(self):
+        self.maxDiff = None
+        Iproute2_parse.DEBUG = False
+        cmdfile = "unit_tests/host_192.168.0.1_cmd_ss-anp.txt"
         streams = Iproute2_parse.ss((INPUT_DATA_DIRECTORY / cmdfile).read_text())
         self.assertEqual(EXPECTED_RESULTS[cmdfile], streams)
 

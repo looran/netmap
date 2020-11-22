@@ -2,6 +2,8 @@
 
 netmap generates text analysis and interactive graphical map of a network from system commands output and pcap traces from multiple nodes.
 
+![Netmap of a dummy network](demo_data/dummynet/dummynet.gif)
+
 Features:
 * Input from simple text files system commands output and standard network pcap traces
 * Text output analysis gives a quick overview of nodes and network streams
@@ -12,7 +14,7 @@ Features:
 Compatibility
 * On monitored machines
 	* Linux with iproute2 installed, optionally tcpdump
-	* Supports Kubernetes pods, executes commands from the master in all pods, see `data_gathering/generate_data_k8s.sh`
+	* Supports Kubernetes pods, executes commands from the master in all pods, see [data_gathering/generate_data_k8s.sh]
 * On visualisation machine
 	* python3 and python3-flask
 
@@ -38,13 +40,13 @@ webserver.sh <input_data_directory>
 data_gathering/
 	example scripts for data gathering on local and remote hosts
 demo_data/
-	dummy system commands output and pcap traces for demo purposes
+	dummy system commands output and pcap traces for demo purposes and unit tests
 flask/
 	webapp for network map visualisation
 lib/
 	network data processing libraries
 test/
-	unit tests for processing commands output and pcaps
+	unit tests code for processing commands output and pcaps
 ```
 
 ### Data input format
@@ -81,6 +83,7 @@ See help at the bottom of the network map web page.
 On host 192.168.0.1:
 
 ``` bash
+$ cd netmap_data/mynetwork/
 $ ip address show > host_192.168.0.1_cmd_ip-address-show.txt
 $ sudo ss -anp > host_192.168.0.1_cmd_ss-anp.txt
 $ ip neighbour show > host_192.168.0.1_cmd_ip-neighbour-show.txt
@@ -96,9 +99,24 @@ Parsing some `ip` command output is part of unittests.
 make tests
 ```
 
+### Developpment and debugging
+
+Both `netmap_cli.py` and `webserver.sh` can be passed a `-d` flag:
+
+``` bash
+$ ./netmap_cli.py -d demo_data/ network1
+```
+``` bash
+$ ./webserver.sh -d ./demo_data/
+```
+
 ### TODO
 
+* show group names vertically (multiline)
 * implement pcap import
+* add versions of a network
+* visualdiff between network versions
+* save to named profile on server
 * color link label background depending on port, choose color dynamically
 * k8s: re-verify that we don't miss containers
-* maybe when highlight node make the other nodes/links almost transparent
+* maybe when highlight node make the other nodes/links more transparent

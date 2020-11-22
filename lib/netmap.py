@@ -1,10 +1,16 @@
 import re
 import time
+import logging
 from pathlib import Path
+from logging import info, debug
 from collections import defaultdict, Counter
 
 from iproute2_parse import Iproute2_parse
 from system_files_parse import System_files_parse
+from anonymize import Anonymize
+
+PROGRAM_VERSION = '0.1'
+PROGRAM_HEADER = 'netmap v%s' % PROGRAM_VERSION
 
 class Node(object):
     def __init__(self):
@@ -18,9 +24,11 @@ class Node(object):
                 return node_iface.node_ips[ip]
         return None
 
-    def add_or_update_ip(self, ip, ifname, mac):
+    def add_or_update_ip(self, ip, ifname, mac=None):
         node_ip = self.find_node_ip(ip)
-        if not node_ip:
+        if node_ip:
+            node_iface = node_ip.node_iface
+        else:
             if ifname in self.node_ifaces:
                 node_iface = self.node_ifaces[ifname]
             else:
@@ -28,10 +36,8 @@ class Node(object):
                 self.node_ifaces[ifname] = node_iface
             node_ip = Node_ip(node_iface, ip)
             node_iface.node_ips[ip] = node_ip
-        else:
-            node_iface = node_ip.node_iface
-        if ifname:
-            node_iface.name = ifname
+        if ifname and ifname != node_iface.name and node_iface.name in [None, 'any']: # rename interface to correct name
+            self.rename_iface(node_iface, ifname)
         if mac:
             node_iface.mac = mac
         return node_ip
@@ -53,11 +59,33 @@ class Node(object):
     def copy_from(self, othernode):
         for otheriface in othernode.node_ifaces.values():
             if otheriface.name in self.node_ifaces:
-                for othernode_ip in otheriface.node_ips.values():
-                    if othernode_ip not in self.node_ifaces[otheriface.name].node_ips:
-                        self.node_ifaces[otheriface.name].node_ips[othernode_ip.ip] = othernode_ip
+                self.node_ifaces[otheriface.name].copy_from(otheriface)
             else:
                 self.node_ifaces[otheriface.name] = otheriface
+        self.names = self.names.union(othernode.names)
+
+    def rename_iface(self, node_iface, ifname):
+        debug("node %s renaming iface from %s to %s" % (self.names, node_iface.name, ifname))
+        if ifname in self.node_ifaces:
+            self.node_ifaces[ifname].copy_from(node_iface)
+            self.node_ifaces.pop(node_iface.name)
+        else:
+            self.node_ifaces[ifname] = self.node_ifaces.pop(node_iface.name)
+            node_iface.name = ifname
+
+    def anonymize(self, anon):
+        self.names = set([anon.text(x) for x in self.names])
+        node_ifaces = dict()
+        for ifacename, iface in self.node_ifaces.items():
+            iface.anonymize(anon)
+            node_ifaces[iface.name] = iface
+        self.node_ifaces = node_ifaces
+
+    def to_str(self):
+        s = "Node %s\n" % self.names
+        for ifname, iface in self.node_ifaces.items():
+            s += "iface: %s\n%s" % (ifname, iface.to_str())
+        return s
 
 class Node_iface(object):
     def __init__(self, node, name=None, mac=None):
@@ -68,15 +96,61 @@ class Node_iface(object):
         self.services = dict()      # { (<proto>, <port>): Service, ... }
         self.neighbours = dict()    # { <ip>: Node_ip, ... }
 
+    def copy_from(self, node_iface):
+        for node_ip in node_iface.node_ips.values():
+            if node_ip.ip not in self.node_ips:
+                self.node_ips[node_ip.ip] = node_ip
+        if self.mac is None and node_iface.mac:
+            self.mac = node_iface.mac
+        for service in node_iface.services.values():
+            if (service.proto, service.port) not in self.services:
+                self.services[(service.proto, service.port)] = service
+        for node_ip in node_iface.neighbours.values():
+            if node_ip.ip not in self.neighbours:
+                self.neighbours[node_ip.ip] = node_ip
+
+    def anonymize(self, anon):
+        if self.name not in ['lo']:
+            if self.name:
+                self.name = anon.text(self.name)
+            if self.mac:
+                self.mac = anon.mac(self.mac)
+        node_ips = dict()
+        for nodeip in self.node_ips.values():
+            nodeip.anonymize(anon)
+            node_ips[nodeip.ip] = nodeip
+        self.node_ips = node_ips
+        services = dict()
+        for service in self.services.values():
+            service.anonymize(anon)
+            services[(anon.text(service.proto), anon.int(service.port))] = service
+        self.services = services
+        neighbours = dict()
+        for neighbour in self.neighbours.values():
+            neighbour.anonymize(anon)
+            neighbours[neighbour.ip] = neighbour
+        self.neighbours = neighbours
+
+    def to_str(self):
+        s = "Node_iface %s\n" % self.name
+        for nodeip in self.node_ips.values():
+            s += "ip: %s\n" % nodeip.ip
+        return s
+
 class Node_ip(object):
     def __init__(self, node_iface, ip):
         self.node_iface = node_iface # Node_iface
         self.ip = ip                # str
-        #self.streams = dict()      # { (Node_ip, <src_port>, Node_ip, <dst_port>): Stream, ... }
         self.streams = list()       # [ Stream, ... ]
+        self.anonymized = False     # Node_ips are referenced in multiple places so we need a way to ensure anonymizing them only once
 
     def get_id(self):
         return "%s_%s_%s" % (' '.join(self.node_iface.node.names), self.node_iface.name, self.ip)
+
+    def anonymize(self, anon):
+        if self.anonymized is False and self.ip not in ['127.0.0.1', '::1']:
+            self.ip = anon.ip(self.ip)
+            self.anonymized = True
 
 class Service(object):
     def __init__(self, node_iface, proto, port, name=""):
@@ -84,6 +158,11 @@ class Service(object):
         self.proto = proto      # str
         self.port = port        # int
         self.name = name        # str
+
+    def anonymize(self, anon):
+        self.proto = anon.text(self.proto)
+        self.port = anon.int(self.port)
+        self.name = anon.text(self.name)
 
 class Stream(object):
     def __init__(self, src_node_ip, src_port, dst_node_ip, dst_port):
@@ -94,6 +173,13 @@ class Stream(object):
         self.dst_service = None         # Service
         self.name = ""                  # str
         self.found_in = list()          # [ <reference_to_source>, ... ]
+
+    def anonymize(self, anon):
+        self.src_port = anon.int(self.src_port)
+        self.dst_port = anon.int(self.dst_port)
+        if self.dst_service:
+            self.dst_service.anonymize(anon)
+        self.name = anon.text(self.name)
 
 class Network(object):
     def __init__(self, network_name):
@@ -142,6 +228,13 @@ class Network(object):
         self.nodes.remove(node)
         del(node)
 
+    def anonymize(self, anon):
+        self.network_name = anon.text(self.network_name)
+        for node in self.nodes:
+            node.anonymize(anon)
+        for stream in self.streams:
+            stream.anonymize(anon)
+
     def to_str(self):
         s = "== Network '%s' summary ==\n" % self.network_name
         s += "Nodes:\n"
@@ -159,6 +252,9 @@ class Network(object):
                     s += "      Neighbours\n"
                     for neigh_ip in node_iface.neighbours.keys():
                         s += "         %s\n" % neigh_ip
+        s += "Streams:\n"
+        for stream in self.streams:
+            s += "   %s:%s %s:%s %s\n" % (stream.src_node_ip.ip, stream.src_port, stream.dst_node_ip.ip, stream.dst_port, stream.name)
         return s
 
     def to_map(self):
@@ -236,12 +332,16 @@ class Network(object):
         return map_nodes, map_links
 
 class Netmap(object):
-    def __init__(self, network_dir, debug=False):
+    def __init__(self, network_dir, anonymize_hex_salt=None, debugval=False):
         self.network_dir = network_dir
-        self.debug = debug
-        if debug >= 2:
+        if anonymize_hex_salt:
+            self.anonymizer = Anonymize(anonymize_hex_salt)
+        else:
+            self.anonymizer = None
+        logging.basicConfig(level=logging.INFO if debugval == 0 else logging.DEBUG)
+        if debugval >= 2:
             Iproute2_parse.DEBUG = True
-        self._debug("network data directory: %s" % self.network_dir)
+        debug("network data directory: %s" % self.network_dir)
         if not self.network_dir.exists():
             raise Exception("network data directory does not exist : %s" % self.network_dir)
         self.network = Network(network_dir.name)
@@ -253,6 +353,8 @@ class Netmap(object):
         self.stats["nodes_count"] = len(self.network.nodes)
         self.stats["streams_count"] = len(self.network.streams)
         self.stats["last_modification"] = time.strftime("%Y%m%d_%H%M%S", time.gmtime(self.stats["last_modification"]))
+        if self.anonymizer:
+            self.network.anonymize(self.anonymizer)
 
     def summary(self):
         s = ""
@@ -270,7 +372,7 @@ class Netmap(object):
             if f.stat().st_mtime > self.stats["last_modification"]:
                 self.stats["last_modification"] = f.stat().st_mtime
             m = re.match(r"host_(?P<ip>[0-9.]*)_cmd_(?P<command>[a-z-._]*).txt", f.name)
-            self._debug("parsing input cmd file %s : %s" % (f, m.groups()))
+            debug("parsing input cmd file %s : %s" % (f, m.groups()))
             if not m:
                 self._warn("ignored file because file name is not recognised : %s" % f)
                 continue
@@ -284,10 +386,11 @@ class Netmap(object):
                         if othernode_ip and othernode_ip.node_iface.node != node and not othernode_ip.node_iface.name:
                             # another node_ip already exists with same ip and has not been identified from a host system yet (no iface name)
                             # lets integrate it to current node
-                            self._debug("ip '%s' trigger '%s' copy_from '%s'/'%s'" % (ip, node.names, othernode_ip.node_iface.node.names, othernode_ip.node_iface.name))
+                            debug("ip '%s' trigger '%s' copy_from '%s'/'%s'" % (ip, node.names, othernode_ip.node_iface.node.names, othernode_ip.node_iface.name))
                             node.copy_from(othernode_ip.node_iface.node)
                             self.network.delete_node(othernode_ip.node_iface.node)
-                        node.add_or_update_ip(ip, iface['name'], iface['link_addr'])
+                        linkaddr = iface['link_addr'] if 'link_addr' in iface else None
+                        dbgnodeip = node.add_or_update_ip(ip, iface['name'], linkaddr)
             elif m.group('command') == "ip-route-show":
                 self._warn("ip-route-show not supported %s" % f.name)
                 continue
@@ -305,9 +408,13 @@ class Netmap(object):
                             if sst['local_ip'] in ['0.0.0.0', '::', '*']:
                                 iface = node.find_or_create_iface('any')
                             else:
-                                nip = node.find_node_ip(sst['local_ip'])
-                                if not nip:
-                                    raise Exception("Interface not found for ip %s : %s" % (sst['local_ip'], str(sst)))
+                                if 'local_iface' in sst: # if iface is explicitely specified, deamon might be binded on different ip
+                                    #iface = node.find_or_create_iface(sst['local_iface'])
+                                    nip = node.add_or_update_ip(sst['local_ip'], sst['local_iface'])
+                                else:
+                                    nip = node.find_node_ip(sst['local_ip'])
+                                    if not nip:
+                                        raise Exception("Interface not found for ip %s : %s" % (sst['local_ip'], str(sst)))
                                 iface = nip.node_iface
                             if (sst['netid'], sst['local_port']) not in iface.services:
                                 serv = Service(iface, sst['netid'], sst['local_port'])
@@ -338,11 +445,3 @@ class Netmap(object):
 
     def _parse_input_pcap(self):
         self.stats["parsed_pcaps"] = 0
-
-    def _debug(self, msg):
-        if self.debug >= 1:
-            print("debug: %s" % msg)
-
-    def _warn(self, msg):
-        print("warning: %s" % msg)
-

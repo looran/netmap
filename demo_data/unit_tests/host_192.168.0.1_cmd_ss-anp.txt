@@ -1,0 +1,12 @@
+tcp   LISTEN     0       5                                            127.0.0.1:705                                              0.0.0.0:*                       users:(("snmpd",pid=1087,fd=12))                  
+tcp   LISTEN     0       128                                          127.0.0.1:1031                                             0.0.0.0:*                       users:(("ssh",pid=26715,fd=5))                    
+tcp   LISTEN     0       1                                            127.0.0.1:1032                                             0.0.0.0:*                       users:(("autossh",pid=5090,fd=3))                 
+tcp   LISTEN     0       128                                          127.0.0.1:4949                                             0.0.0.0:*                       users:(("/usr/sbin/munin",pid=29361,fd=5),("munin-node",pid=9344,fd=5))
+tcp   LISTEN     0       128                                      127.0.0.53%lo:53                                               0.0.0.0:*                       users:(("systemd-resolve",pid=801,fd=13))         
+tcp   ESTAB      59504   0                                            127.0.0.1:56952                                          127.0.0.1:22                      users:(("ssh",pid=26715,fd=6))                    
+tcp   ESTAB      0       216                                         192.168.0.2:22                                            192.168.0.4:37094                   users:(("sshd",pid=29123,fd=3))                   
+tcp   ESTAB      0       0                                            127.0.0.1:1032                                           127.0.0.1:48480                   users:(("autossh",pid=5090,fd=6))                 
+tcp   ESTAB      0       0                                            127.0.0.1:34566                                          127.0.0.1:1031                    users:(("autossh",pid=5090,fd=5))                 
+tcp   ESTAB      0       0                                           192.168.0.2:38134                                        192.168.0.1:22                      users:(("ssh",pid=19220,fd=3))                    
+tcp   ESTAB      0       0                                            127.0.0.1:48480                                          127.0.0.1:1032                    users:(("ssh",pid=26715,fd=8))                    
+
