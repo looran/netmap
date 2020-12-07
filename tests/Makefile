@@ -4,6 +4,7 @@ BINDIR=$(PREFIX)/bin
 all:
 	./test_iproute2_parse.py
 	./test_system_files_parse.py
+	./test_netmap_lib.py
 
 clean:
 	rm -f *.pyc
