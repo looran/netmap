@@ -41,4 +41,15 @@ kubectl get pod --all-namespaces -o jsonpath="{range .items[*]}{.metadata.namesp
     done
 done
 
+echo "[+] getting services and endpoints IPs"
+while read s_name s_namespace s_cluster_ip <&4; do
+	echo "$s_name $s_cluster_ip"
+	while read ep_ip ep_kind ep_name <&3; do
+		echo "   $ep_ip $ep_kind $ep_name"
+	done 3< <(kubectl get endpoints $s_name -n $s_namespace -o jsonpath="{range .subsets[0].addresses[*]}{.ip}{' '}{.targetRef.kind}{' '}{.targetRef.name}{'\n'}{end}")
+	while read ep_proto ep_port ep_name <&3; do
+		echo "   $ep_proto/$ep_port $ep_name"
+	done 3< <(kubectl get endpoints $s_name -n $s_namespace -o jsonpath="{range .subsets[0].ports[*]}{.protocol}{' '}{.port}{' '}{.name}{'\n'}{end}")
+done 4< <(kubectl get service --all-namespaces -o jsonpath="{range .items[*]}{.metadata.name} {.metadata.namespace} {.spec.clusterIP}{'\n'}{end}") |tee $out_dir/host_${host_ip}_cmd_netmap_k8s_services_list.txt >&2
+
 echo "[*] DONE, kubernetes pods results stored in $out_dir" >&2

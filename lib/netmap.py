@@ -7,6 +7,7 @@ from collections import defaultdict, Counter
 
 from iproute2_parse import Iproute2_parse
 from system_files_parse import System_files_parse
+from k8s_parse import K8s_parse
 from anonymize import Anonymize
 
 PROGRAM_VERSION = '0.1'
@@ -446,6 +447,20 @@ class Netmap(object):
                 #for neigh_ip, neigh_infos in Iproute2_parse.ip_neighbour_show(f.read_text()).items():
                 #    neigh_node_ip = self.network.find_or_create_node_ip(neigh_ip)
                 #    node_ip.node_iface.neighbours[neigh_ip] = neigh_node_ip
+            elif m.group('command') == "netmap_k8s_services_list":
+                for ks in K8s_parse.netmap_service_list(f.read_text()):
+                    debug("netmap_k8s_services_list: %s" % ks)
+                    for pod_ip, pod_name in ks['service_pods']:
+                        pod_node_ip = self.network.find_or_create_node_ip(pod_ip)
+                        pod_node = pod_node_ip.node_iface.node
+                        if pod_name:
+                            pod_node.names.add(pod_name)
+                        if ks['service_name']:
+                            pod_node.names.add(ks['service_name'])
+                        if ks['service_ip']:
+                            service_node_ip = pod_node.add_or_update_ip(ks['service_ip'], ks['service_name'])
+                            for port_proto, port_number, port_name in ks['service_ports']:
+                                service_node_ip.node_iface.add_or_update_service(port_proto, port_number, port_name)
             else:
                 warning("ignoring file because command '%s' is unknown : %s" % (m.group('command'), f))
                 continue
