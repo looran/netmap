@@ -12,7 +12,7 @@ gendata_opts=""
 output_dir="$1" && shift
 [ ! -e "$output_dir" ] && echo "error: directory does not exist: $output_dir" && exit 1
 now=$(date +%Y%m%d_%H%M%S)
-echo "$now $*" >> "$out_dir/remote_generate_data_${now}.log"
+echo "$now $*" >> "$output_dir/remote_generate_data_${now}.log"
 echo "SSH_OPTS='$SSH_OPTS'"
 
 for remote_host in "$@"; do
