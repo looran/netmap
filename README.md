@@ -1,34 +1,52 @@
-# netmap - network mapping from system commands output and pcap traces
+## netmap - network mapping from system commands output and pcap traces
 
 netmap generates text analysis and interactive graphical map of a network from system commands output and pcap traces from multiple nodes.
 
 ![Netmap of a dummy network](demo_data/dummynet/dummynet.gif)
 
 Features:
-* Input from simple text files system commands output and standard network pcap traces
+* Input from simple system commands output text files (`ip a s`, `ss -anp`, `kubectl`...) and standard network `pcap` traces
 * Text output analysis gives a quick overview of nodes and network streams
 * Graphical map output showing network nodes helps understand visually the architecture of a network
 * Interactivity of the map allows to place network nodes manually in a fashion where it makes best sense for understanding
 * Network streams between nodes show application-level communications
 
-Compatibility
-* On monitored machines
-	* Linux with iproute2 installed, optionally tcpdump
-	* Supports Kubernetes pods, executes commands from the master in all pods, see [data_gathering/generate_data_k8s.sh]
-* On visualisation machine
-	* python3 and python3-flask
-
 ### Usage
 
-1. Create a directory for the network data, like `mkdir -p netmap_data/mynetwork/`
-2. Gather commands output and pcap traces from the nodes in your network
-	1. On the local node, here 192.168.0.1: `./data_gathering/generate_data.sh netmap_data/mynetwork/ 192.168.0.1`
-	2. From remote notes: `./data_gathering/remote_generate_data.sh netmap_data/mynetwork/ 192.168.0.250 10.10.10.1`
-	3. You can also gather gata from your own scripts and store the result to `netmap_data/mynetwork/` following [#Data input format] naming.
-3. Run `./netmap_cli.py netmap_data/ mynetwork` to have an overview of the gathered data
-4. Run `./webserver.sh netmap_data/` and connect to http://127.0.0.1:5000/ to view the network map
+**1. Create a directory for the network data**
+``` bash
+$ mkdir -p netmap_data/mynetwork/
+```
 
-For demo purposes you can run `./webserver.sh ./demo_data/` and it will read dummy network data from demo_data/ directory.
+**2. Gather commands output and pcap traces from the nodes in your network**
+
+2.a. On the local node, here 192.168.0.1, [generate_data.sh](data_gathering/generate_data.sh) will execute various system commands (`ip`, `ss`, ...) to get network configuration and store output in text files:
+``` bash
+$ ./data_gathering/generate_data.sh netmap_data/mynetwork/ 192.168.0.1
+```
+
+On Kubernetes cluster, you can use [generate_data_k8s.sh](data_gathering/generate_data_k8s.sh) which gathers informations from all your pods from the master node, to make the pods appear in the network map.
+
+2.b. From remote notes, [remote_generate_data.sh](data_gathering/remote_generate_data.sh) will connect via SSH to the nodes, run the above script and fetch results:
+``` bash
+./data_gathering/remote_generate_data.sh netmap_data/mynetwork/ 192.168.0.250 10.10.10.1
+```
+
+2.c. You can also gather gata from your own scripts and store the result to `netmap_data/mynetwork/` following [Data input format](#data-input-format) naming.
+
+**3. Run the command-line tool to have an overview of the gathered data**
+
+``` bash
+$ ./netmap_cli.py netmap_data/ mynetwork`
+```
+
+**4. Run the webserver and connect to http://127.0.0.1:5000/ to view the network map**
+
+``` bash
+$ ./webserver.sh netmap_data/
+```
+
+For demo purposes you can run `./webserver.sh ./demo_data/` and click on `network1` that will show you a network map from the data used for unit tests.
 
 ### Source code layout
 
@@ -49,6 +67,15 @@ test/
 	unit tests code for processing commands output and pcaps
 ```
 
+
+### Compatibility
+
+* On monitored machines
+	* Linux with `iproute2` installed, optionally `tcpdump`
+	* Supports Kubernetes pods, executes commands from the master in all pods, see [generate_data_k8s.sh](data_gathering/generate_data_k8s.sh)
+* On visualisation machine
+	* `python3` and `python3-flask`
+
 ### Data input format
 
 netmap takes as input a directory containing the network data to analyse, each network in it's own directory.
@@ -68,17 +95,7 @@ network1/host_<host_ip>_cmd_etc_hosts.txt
 network1/host_<host_ip>_pcap_<interface>.pcap
 ```
 
-### Interactive network map
-
-The network map is generated from commands output files and network traces files from the `input_data_directory`.
-
-Refreshing the web page will give you an up-to-date map from the current data. A cache file is generated and used if the `input_data_directory` has not been modified.
-
-You can export the graph to PNG or SVG by clicking the "Download" buttons on the web interface.
-
-See help at the bottom of the network map web page.
-
-### Example manual data gathering
+#### Example manual data gathering
 
 On host 192.168.0.1:
 
@@ -90,6 +107,16 @@ $ ip neighbour show > host_192.168.0.1_cmd_ip-neighbour-show.txt
 $ cat /etc/hosts > host_192.168.0.1_cmd_cat_etc_hosts.txt
 $ sudo tcpdump -ni enp0s31f6 -c 100 -w host_192.168.0.1_pcap_enp0s31f6.pcap
 ```
+
+### Interactive network map
+
+The network map is generated from commands output files and network traces files from the `input_data_directory`.
+
+Refreshing the web page will give you an up-to-date map from the current data. A cache file is generated and used if the `input_data_directory` has not been modified.
+
+You can export the graph to PNG or SVG by clicking the "Download" buttons on the web interface.
+
+See help at the bottom of the network map web page.
 
 ### Unit tests
 
