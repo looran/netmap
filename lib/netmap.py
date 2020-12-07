@@ -2,7 +2,7 @@ import re
 import time
 import logging
 from pathlib import Path
-from logging import info, debug
+from logging import info, debug, warning
 from collections import defaultdict, Counter
 
 from iproute2_parse import Iproute2_parse
@@ -374,7 +374,7 @@ class Netmap(object):
             m = re.match(r"host_(?P<ip>[0-9.]*)_cmd_(?P<command>[a-z-._]*).txt", f.name)
             debug("parsing input cmd file %s : %s" % (f, m.groups()))
             if not m:
-                self._warn("ignored file because file name is not recognised : %s" % f)
+                warning("ignored file because file name is not recognised : %s" % f)
                 continue
             node_ip = self.network.find_or_create_node_ip(m.group('ip'))
             node_iface = node_ip.node_iface
@@ -392,7 +392,7 @@ class Netmap(object):
                         linkaddr = iface['link_addr'] if 'link_addr' in iface else None
                         dbgnodeip = node.add_or_update_ip(ip, iface['name'], linkaddr)
             elif m.group('command') == "ip-route-show":
-                self._warn("ip-route-show not supported %s" % f.name)
+                warning("ip-route-show not supported %s" % f.name)
                 continue
             elif m.group('command') == "hostname":
                 hostname = f.read_text().strip()
@@ -439,7 +439,7 @@ class Netmap(object):
                 #    neigh_node_ip = self.network.find_or_create_node_ip(neigh_ip)
                 #    node_ip.node_iface.neighbours[neigh_ip] = neigh_node_ip
             else:
-                self._warn("ignoring file because command '%s' is unknown : %s" % (m.group('command'), f))
+                warning("ignoring file because command '%s' is unknown : %s" % (m.group('command'), f))
                 continue
             self.stats["parsed_command_output"] += 1
 
