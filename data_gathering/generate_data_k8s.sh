@@ -4,7 +4,7 @@
 # this is an example script with cryptic syntax to make it as short as possible.
 # it probably should not be run on production as it lacks checking of all sort.
 # requirements:
-# * 'kubectl get pod' can list all pods of the k8s cluster
+# * 'kubectl get pod --all-namespaces' can list all pods of the k8s cluster
 # * passwordless root ssh to host nodes names
 #     for example you could use sshpass or specific ssh configuration file
 #     in environnment variable SSH_NODES_CMD
