@@ -383,7 +383,7 @@ class Netmap(object):
         for f in sorted(self.network_dir.glob('host_*_cmd_*.txt')):
             if f.stat().st_mtime > self.stats["last_modification"]:
                 self.stats["last_modification"] = f.stat().st_mtime
-            m = re.match(r"host_(?P<ip>[0-9.]*)_cmd_(?P<command>[a-z-._]*).txt", f.name)
+            m = re.match(r"host_(?P<ip>[0-9.]*)_cmd_(?P<command>[0-9a-z-._]*).txt", f.name)
             if not m:
                 warning("ignored file because file name is not recognised : %s" % f)
                 continue
