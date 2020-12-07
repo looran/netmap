@@ -342,7 +342,7 @@ class Netmap(object):
             self.anonymizer = Anonymize(anonymize_hex_salt)
         else:
             self.anonymizer = None
-        logging.basicConfig(level=logging.INFO if debugval == 0 else logging.DEBUG)
+        logging.basicConfig(level=logging.INFO if debugval == 0 else logging.DEBUG, format="%(levelname)s %(message)s")
         if debugval >= 2:
             Iproute2_parse.DEBUG = True
         debug("network data directory: %s" % self.network_dir)
