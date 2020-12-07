@@ -25,6 +25,7 @@ class Node(object):
         return None
 
     def add_or_update_ip(self, ip, ifname, mac=None):
+        debug("add_or_udpate_ip node='%s' ip=%s ifname=%s" % (self.names, ip, ifname))
         node_ip = self.find_node_ip(ip)
         if node_ip:
             node_iface = node_ip.node_iface
@@ -65,11 +66,13 @@ class Node(object):
         self.names = self.names.union(othernode.names)
 
     def rename_iface(self, node_iface, ifname):
-        debug("node %s renaming iface from %s to %s" % (self.names, node_iface.name, ifname))
+        debug("node renaming iface from %s to %s:\n%s" % (node_iface.name, ifname, self.to_str()))
         if ifname in self.node_ifaces:
+            debug("node renaming ifname=%s already exists, copying iface content" % ifname)
             self.node_ifaces[ifname].copy_from(node_iface)
             self.node_ifaces.pop(node_iface.name)
         else:
+            debug("node renaming iface=%s does not exist, direct renaming" % ifname)
             self.node_ifaces[ifname] = self.node_ifaces.pop(node_iface.name)
             node_iface.name = ifname
 
@@ -139,6 +142,7 @@ class Node_iface(object):
 
 class Node_ip(object):
     def __init__(self, node_iface, ip):
+        debug("Node_ip node_iface=%s ip=%s" % (node_iface.name, ip))
         self.node_iface = node_iface # Node_iface
         self.ip = ip                # str
         self.streams = list()       # [ Stream, ... ]
@@ -372,10 +376,10 @@ class Netmap(object):
             if f.stat().st_mtime > self.stats["last_modification"]:
                 self.stats["last_modification"] = f.stat().st_mtime
             m = re.match(r"host_(?P<ip>[0-9.]*)_cmd_(?P<command>[a-z-._]*).txt", f.name)
-            debug("parsing input cmd file %s : %s" % (f, m.groups()))
             if not m:
                 warning("ignored file because file name is not recognised : %s" % f)
                 continue
+            debug("parsing input cmd file %s : %s" % (f, m.groups()))
             node_ip = self.network.find_or_create_node_ip(m.group('ip'))
             node_iface = node_ip.node_iface
             node = node_iface.node
