@@ -74,7 +74,7 @@ class Node(object):
         else:
             debug("node renaming iface=%s does not exist, direct renaming" % ifname)
             self.node_ifaces[ifname] = self.node_ifaces.pop(node_iface.name)
-            node_iface.name = ifname
+            self.node_ifaces[ifname].name = ifname
 
     def anonymize(self, anon):
         self.names = set([anon.text(x) for x in self.names])
