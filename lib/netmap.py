@@ -87,7 +87,7 @@ class Node(object):
     def to_str(self):
         s = "Node %s\n" % self.names
         for ifname, iface in self.node_ifaces.items():
-            s += "iface: %s\n%s" % (ifname, iface.to_str())
+            s += "iface: %s:\n%s" % (ifname, iface.to_str())
         return s
 
 class Node_iface(object):
