@@ -291,7 +291,6 @@ class Network(object):
                     "key": node_name,
                     "isGroup": "true",
                     "text": node_name,
-                    #"color": "rgba(128,128,128,0.33)",
                 })
             for node_iface in node.node_ifaces.values():
                 for node_ip in node_iface.node_ips.values():
@@ -299,7 +298,6 @@ class Network(object):
                         "category": "node_ip",
                         "key": node_ip.get_id(),
                         "text": node_ip.ip,
-                        #"color": "grey",
                     }
                     if node_name:
                         mapnode['group'] = node_name
@@ -330,7 +328,6 @@ class Network(object):
                         "to": dstip.get_id(),
                         "text": text,
                         "color": "rgba(200, 200, 200, 0.52)",
-                        #"color_arrow": "rgba(100, 100, 100, 0.52)",
                         "font": "8pt sans-serif",
                     })
         return map_nodes, map_links
@@ -413,7 +410,6 @@ class Netmap(object):
                                 iface = node.find_or_create_iface('any')
                             else:
                                 if 'local_iface' in sst: # if iface is explicitely specified, deamon might be binded on different ip
-                                    #iface = node.find_or_create_iface(sst['local_iface'])
                                     nip = node.add_or_update_ip(sst['local_ip'], sst['local_iface'])
                                 else:
                                     nip = node.find_node_ip(sst['local_ip'])

@@ -1,0 +1,14 @@
+login 172.16.0.1
+   10.0.0.1 Pod login-pod-1
+   10.0.0.2 Pod login-pod-2
+   TCP/8080 http-login-page
+backend 172.16.0.2
+   10.0.0.21 Pod backend-pod-1
+   10.0.0.22 Pod backend-pod-2
+   10.0.0.23
+   TCP/3306 mysql
+   TCP/5000 debug
+   TCP/22
+dummy None
+   10.0.0.21 Pod backend-pod-1
+   TCP/50000 dummytest
