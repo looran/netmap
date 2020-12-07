@@ -149,7 +149,7 @@ class Node_ip(object):
         self.anonymized = False     # Node_ips are referenced in multiple places so we need a way to ensure anonymizing them only once
 
     def get_id(self):
-        return "%s_%s_%s" % (' '.join(self.node_iface.node.names), self.node_iface.name, self.ip)
+        return "%s_%s_%s" % (' '.join(sorted(self.node_iface.node.names)), self.node_iface.name, self.ip)
 
     def anonymize(self, anon):
         if self.anonymized is False and self.ip not in ['127.0.0.1', '::1']:
@@ -243,7 +243,7 @@ class Network(object):
         s = "== Network '%s' summary ==\n" % self.network_name
         s += "Nodes:\n"
         for node in self.nodes:
-            s += "Node %s\n" % ' '.join(node.names)
+            s += "Node %s\n" % ' '.join(sorted(node.names))
             for node_iface in node.node_ifaces.values():
                 s += "   %s %s\n" % (node_iface.name, node_iface.mac)
                 for service in node_iface.services.values():
@@ -280,7 +280,7 @@ class Network(object):
         streams = defaultdict(lambda: defaultdict(lambda: defaultdict(set))) # { <srcip>: { <dstip>: { [<srcport>, <dstport>]: [ stream, ... ] } } }
         for node in self.nodes:
             if len(node.names) > 0:
-                node_name = ' '.join(node.names)
+                node_name = ' '.join(sorted(node.names))
             elif len(node.list_node_ips()) > 1:
                 node_name = 'node ' + ' '.join([node_ip.ip for node_ip in node.list_node_ips()])
             else:
