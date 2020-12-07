@@ -99,6 +99,15 @@ class Node_iface(object):
         self.services = dict()      # { (<proto>, <port>): Service, ... }
         self.neighbours = dict()    # { <ip>: Node_ip, ... }
 
+    def add_or_update_service(self, proto, port, name):
+        if (proto, port) in self.services:
+            service = self.services[(proto, port)]
+            if name:
+                service.names.add(name)
+        else:
+            service = Service(self, proto, port, name)
+            self.services[(proto, port)] = service
+
     def copy_from(self, node_iface):
         for node_ip in node_iface.node_ips.values():
             if node_ip.ip not in self.node_ips:
@@ -161,12 +170,14 @@ class Service(object):
         self.node_iface = node_iface # Node_iface
         self.proto = proto      # str
         self.port = port        # int
-        self.name = name        # str
+        self.names = set()       # [ name, ... ]
+        if name and name != "":
+            self.names.add(name)
 
     def anonymize(self, anon):
         self.proto = anon.text(self.proto)
         self.port = anon.int(self.port)
-        self.name = anon.text(self.name)
+        self.names = set([anon.text(x) for x in self.names])
 
 class Stream(object):
     def __init__(self, src_node_ip, src_port, dst_node_ip, dst_port):
@@ -247,7 +258,7 @@ class Network(object):
             for node_iface in node.node_ifaces.values():
                 s += "   %s %s\n" % (node_iface.name, node_iface.mac)
                 for service in node_iface.services.values():
-                    s += "      %s/%s %s\n" % (service.proto, service.port, service.name)
+                    s += "      %s/%s %s\n" % (service.proto, service.port, ','.join(sorted(service.names)))
                 for node_ip in node_iface.node_ips.values():
                     s += "      %s\n" % node_ip.ip
                     for stream in node_ip.streams:
@@ -417,10 +428,7 @@ class Netmap(object):
                                         raise Exception("Interface not found for ip %s : %s" % (sst['local_ip'], str(sst)))
                                 iface = nip.node_iface
                             if (sst['netid'], sst['local_port']) not in iface.services:
-                                serv = Service(iface, sst['netid'], sst['local_port'])
-                                if 'process_name' in sst:
-                                    serv.name = sst['process_name']
-                                iface.services[(sst['netid'], sst['local_port'])] = serv
+                                iface.add_or_update_service(sst['netid'], sst['local_port'], sst['process_name'] if 'process_name' in sst else "")
                         elif sst['state'] in ['ESTAB', 'TIME-WAIT', 'CLOSE-WAIT', 'FIN-WAIT2']:
                             local_node_ip = self.network.find_or_create_node_ip(sst['local_ip'])
                             remote_node_ip = self.network.find_or_create_node_ip(sst['remote_ip'])
