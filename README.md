@@ -73,8 +73,10 @@ test/
 * On monitored machines
 	* Linux with `iproute2` installed, optionally `tcpdump`
 	* Supports Kubernetes pods, executes commands from the master in all pods, see [generate_data_k8s.sh](data_gathering/generate_data_k8s.sh)
-* On visualisation machine
+* On visualisation machine (where webserver/netmap_cli runs)
 	* `python3` and `python3-flask`
+* On web browser
+	* Tested with chromium 87 on Linux
 
 ### Data input format
 
