@@ -31,6 +31,8 @@ def map_copy_settings(map_dict, saved_attributes):
 def index_view():
     if 'NETMAP_INPUT_DATA_DIRECTORY' not in os.environ:
         raise Exception("NETMAP_INPUT_DATA_DIRECTORY environment variable must be set")
+    if 'NETMAP_DISABLE_CACHE' not in os.environ:
+        raise Exception("NETMAP_DISABLE_CACHE environment variable must be set (0 or 1)")
     if 'NETMAP_DEBUG' not in os.environ:
         raise Exception("NETMAP_DEBUG environment variable must be set (0, 1 or 2)")
     if 'NETMAP_ANONYMIZE_HEX_SALT' not in os.environ:
@@ -46,6 +48,7 @@ def netmap_empty_view():
 @app.route('/map/<network_name>/')
 def netmap_view(network_name):
     input_dir = Path(os.environ['NETMAP_INPUT_DATA_DIRECTORY'])
+    disable_cache = int(os.environ['NETMAP_DISABLE_CACHE'])
     anonymize_hex_salt = os.environ['NETMAP_ANONYMIZE_HEX_SALT']
     if len(anonymize_hex_salt) == 0:
         network_name_displayed = network_name
@@ -56,7 +59,10 @@ def netmap_view(network_name):
     network_dir = input_dir / network_name
 
     try:
-        nm = netmap_cache.Netmap_cache(network_dir, run_dir, anonymize_hex_salt=anonymize_hex_salt, debugval=debug)
+        if disable_cache:
+            nm = netmap.Netmap(network_dir, anonymize_hex_salt=anonymize_hex_salt, debugval=debug)
+        else:
+            nm = netmap_cache.Netmap_cache(network_dir, run_dir, anonymize_hex_salt=anonymize_hex_salt, debugval=debug)
     except Exception as e:
         print("Exception: %s" % e)
         print("redirecting to index")
