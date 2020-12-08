@@ -358,11 +358,33 @@ class Netmap(object):
         if not self.network_dir.exists():
             raise Exception("network data directory does not exist : %s" % self.network_dir)
         self.network = Network(network_dir.name)
-        self.stats = {"parsed_command_output":0, "parsed_pcaps": 0, "last_modification": 0}
+        self.stats = {"parsed_input_file":0, "last_modification": 0}
 
     def process(self):
-        self._parse_input_cmd()
-        self._parse_input_pcap()
+        FILES_ORDER = [
+            ("cmd", "ip-address-show", None,            self._process_cmd_ip_address_show),
+            ("cmd", "ip-route-show", None,              self._process_cmd_ip_route_show),
+            ("cmd", "hostname", None,                   self._process_cmd_hostname),
+            ("cmd", "cat_etc_hosts", None,              self._process_cmd_cat_etc_hosts),
+            ("cmd", "ip-neighbour-show", None,          self._process_cmd_ip_neighbour_show),
+            ("cmd", "netmap_k8s_services_list", None,   self._process_cmd_netmap_k8s_services_list),
+            ("cmd", "ss-anp", None,                     self._process_cmd_ss_anp),
+            ("pcap", "*", "(?P<ip>[0-9.]*)",            self._process_pcap),
+        ]
+        for fcat, ftype, fargs, fprocess in FILES_ORDER:
+            for fpath in self.network_dir.glob('host_*_%s_%s.txt' % (fcat, ftype)):
+                fmatch = re.match(r"host_(?P<ip>[0-9.]*)_%s_%s.txt" % (fcat, ftype if fargs is None else fargs), fpath.name)
+                if not fmatch:
+                    warning("ignored file because host ip is not recognised : %s" % fpath)
+                    continue
+                if fpath.stat().st_mtime > self.stats["last_modification"]:
+                    self.stats["last_modification"] = fpath.stat().st_mtime
+                debug("parsing input cmd file %s : %s" % (fpath, fmatch.groups()))
+                node_ip = self.network.find_or_create_node_ip(fmatch.group('ip'))
+                node_iface = node_ip.node_iface
+                node = node_iface.node
+                if fprocess(fpath, fmatch, node_ip, node_iface, node):
+                    self.stats["parsed_input_file"] += 1
         self.stats["nodes_count"] = len(self.network.nodes)
         self.stats["streams_count"] = len(self.network.streams)
         self.stats["last_modification"] = time.strftime("%Y%m%d_%H%M%S", time.gmtime(self.stats["last_modification"]))
@@ -379,8 +401,92 @@ class Netmap(object):
         nodes, links = self.network.to_map()
         return nodes, links
 
-    def _parse_input_cmd(self):
-        # we use sorted() because cmd_ip must be parsed before cmd_ss
+    def _process_cmd_ip_address_show(self, fpath, fmatch, node_ip, node_iface, node):
+        for iface in Iproute2_parse.ip_address_show(fpath.read_text()).values():
+            for ip in iface['ip']:
+                othernode_ip = self.network.find_node_ip(ip)
+                if othernode_ip and othernode_ip.node_iface.node != node and not othernode_ip.node_iface.name:
+                    # another node_ip already exists with same ip and has not been identified from a host system yet (no iface name)
+                    # lets integrate it to current node
+                    debug("ip '%s' trigger '%s' copy_from '%s'/'%s'" % (ip, node.names, othernode_ip.node_iface.node.names, othernode_ip.node_iface.name))
+                    node.copy_from(othernode_ip.node_iface.node)
+                    self.network.delete_node(othernode_ip.node_iface.node)
+                linkaddr = iface['link_addr'] if 'link_addr' in iface else None
+                dbgnodeip = node.add_or_update_ip(ip, iface['name'], linkaddr)
+        return True
+        
+    def _process_cmd_ip_route_show(self, fpath, fmatch, node_ip, node_iface, node):
+        warning("ip-route-show parsing is not yet supported %s" % fpath.name)
+        return False
+
+    def _process_cmd_hostname(self, fpath, fmatch, node_ip, node_iface, node):
+        hostname = fpath.read_text().strip()
+        node.names.add(hostname)
+        return True
+
+    def _process_cmd_cat_etc_hosts(self, fpath, fmatch, node_ip, node_iface, node):
+        for ip, names in System_files_parse.etc_hosts(fpath.read_text()).items():
+            if ip == '127.0.0.1' or self.network.find_node(ip) == node:
+                node.names.update(set(names))
+        return True
+
+    def _process_cmd_ip_neighbour_show(self, fpath, fmatch, node_ip, node_iface, node):
+        warning("XXX 20201110_1711 LG disable neighbours for now, until we have a way to make them less visible : %s" % fpath.name)
+        return False
+        #for neigh_ip, neigh_infos in Iproute2_parse.ip_neighbour_show(fpath.read_text()).items():
+        #    neigh_node_ip = self.network.find_or_create_node_ip(neigh_ip)
+        #    node_ip.node_iface.neighbours[neigh_ip] = neigh_node_ip
+
+    def _process_cmd_netmap_k8s_services_list(self, fpath, fmatch, node_ip, node_iface, node):
+        for ks in K8s_parse.netmap_service_list(fpath.read_text()):
+            debug("_process_cmd_netmap_k8s_services_list: %s" % ks)
+            for pod_ip, pod_name in ks['service_pods']:
+                pod_node_ip = self.network.find_or_create_node_ip(pod_ip)
+                pod_node = pod_node_ip.node_iface.node
+                if pod_name:
+                    pod_node.names.add(pod_name)
+                if ks['service_name']:
+                    pod_node.names.add(ks['service_name'])
+                if ks['service_ip']:
+                    service_node_ip = pod_node.add_or_update_ip(ks['service_ip'], ks['service_name'])
+                    for port_proto, port_number, port_name in ks['service_ports']:
+                        service_node_ip.node_iface.add_or_update_service(port_proto, port_number, port_name)
+        return True
+
+    def _process_cmd_ss_anp(self, fpath, fmatch, node_ip, node_iface, node):
+        for sst in Iproute2_parse.ss(fpath.read_text()):
+            if sst['netid'] in ['tcp', 'udp', 'sctp']:
+                if sst['state'] == 'LISTEN':
+                    if sst['local_ip'] in ['0.0.0.0', '::', '*']:
+                        iface = node.find_or_create_iface('any')
+                    else:
+                        if 'local_iface' in sst: # if iface is explicitely specified, deamon might be binded on different ip
+                            nip = node.add_or_update_ip(sst['local_ip'], sst['local_iface'])
+                        else:
+                            nip = node.find_node_ip(sst['local_ip'])
+                            if not nip:
+                                raise Exception("Interface not found for ip %s : %s" % (sst['local_ip'], str(sst)))
+                        iface = nip.node_iface
+                    if (sst['netid'], sst['local_port']) not in iface.services:
+                        iface.add_or_update_service(sst['netid'], sst['local_port'], sst['process_name'] if 'process_name' in sst else "")
+                elif sst['state'] in ['ESTAB', 'TIME-WAIT', 'CLOSE-WAIT', 'FIN-WAIT2']:
+                    local_node_ip = self.network.find_or_create_node_ip(sst['local_ip'])
+                    remote_node_ip = self.network.find_or_create_node_ip(sst['remote_ip'])
+                    stream = self.network.find_or_create_stream(
+                            local_node_ip, sst['local_port'], remote_node_ip, sst['remote_port'])
+                    if stream not in local_node_ip.streams:
+                        local_node_ip.streams.append(stream)
+                    if stream not in remote_node_ip.streams:
+                        remote_node_ip.streams.append(stream)
+                    if 'process_name' in sst:
+                        stream.name = sst['process_name']
+        return True
+
+    def _process_pcap(self, fpath, fmatch, node_ip, node_iface, node):
+        warning("pcap parsing is not yet supported %s" % fpath.name)
+        return False
+
+    def _OLD_parse_input_cmd(self):
         for f in sorted(self.network_dir.glob('host_*_cmd_*.txt')):
             if f.stat().st_mtime > self.stats["last_modification"]:
                 self.stats["last_modification"] = f.stat().st_mtime
@@ -442,7 +548,7 @@ class Netmap(object):
                             if 'process_name' in sst:
                                 stream.name = sst['process_name']
             elif m.group('command') == "ip-neighbour-show":
-                print("XXX 20201110_1711 LG disable neighbours for now, until we have a way to make them less visible : %s" % f.name)
+                warning("20201110_1711 LG disable neighbours for now, until we have a way to make them less visible : %s" % f.name)
                 continue
                 #for neigh_ip, neigh_infos in Iproute2_parse.ip_neighbour_show(f.read_text()).items():
                 #    neigh_node_ip = self.network.find_or_create_node_ip(neigh_ip)
@@ -466,5 +572,5 @@ class Netmap(object):
                 continue
             self.stats["parsed_command_output"] += 1
 
-    def _parse_input_pcap(self):
+    def _OLD_parse_input_pcap(self):
         self.stats["parsed_pcaps"] = 0

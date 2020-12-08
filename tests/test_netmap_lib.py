@@ -42,7 +42,7 @@ Streams:
    192.168.0.3:57400 41.58.204.138:443 
 
 == Statistics ==
-{'parsed_command_output': 3, 'parsed_pcaps': 0, 'last_modification': '20201117_190845', 'nodes_count': 3, 'streams_count': 2}""",
+{'parsed_input_file': 3, 'last_modification': '20201117_190845', 'nodes_count': 3, 'streams_count': 2}""",
         'map': ([
             {'category': 'node', 'isGroup': 'true', 'key': 'cha', 'text': 'cha'},
             {'category': 'node_ip', 'group': 'cha', 'key': 'cha_lo_127.0.0.1', 'text': '127.0.0.1'},
@@ -107,7 +107,7 @@ Node backend
 Streams:
 
 == Statistics ==
-{'parsed_command_output': 2, 'parsed_pcaps': 0, 'last_modification': '20201207_135511', 'nodes_count': 5, 'streams_count': 0}""",
+{'parsed_input_file': 2, 'last_modification': '20201207_135511', 'nodes_count': 5, 'streams_count': 0}""",
         'map': ([
             {"category": "node", "key": "login login-pod-1", "isGroup": "true", "text": "login login-pod-1"},
             {"category": "node_ip", "key": "login login-pod-1_lo_127.0.0.1", "text": "127.0.0.1", "group": "login login-pod-1"},
