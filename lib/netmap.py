@@ -101,6 +101,7 @@ class Node_iface(object):
         self.neighbours = dict()    # { <ip>: Node_ip, ... }
 
     def add_or_update_service(self, proto, port, name):
+        port = int(port)
         if (proto, port) in self.services:
             service = self.services[(proto, port)]
             if name:
