@@ -438,11 +438,11 @@ class Netmap(object):
         return True
 
     def _process_cmd_ip_neighbour_show(self, fpath, fmatch, node_ip, node_iface, node):
-        warning("20201110_1711 LG disable neighbours for now, until we have a way to make them less visible : %s" % fpath.name)
-        return False
+        # 20201110_1711 LG disable neighbours for now, until we have a way to make them less visible
         #for neigh_ip, neigh_infos in Iproute2_parse.ip_neighbour_show(fpath.read_text()).items():
         #    neigh_node_ip = self.network.find_or_create_node_ip(neigh_ip)
         #    node_ip.node_iface.neighbours[neigh_ip] = neigh_node_ip
+        return False
 
     def _process_cmd_netmap_k8s_services_list(self, fpath, fmatch, node_ip, node_iface, node):
         for ks in K8s_parse.netmap_service_list(fpath.read_text()):
