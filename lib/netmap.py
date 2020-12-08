@@ -431,7 +431,7 @@ class Netmap(object):
         return True
 
     def _process_cmd_ip_neighbour_show(self, fpath, fmatch, node_ip, node_iface, node):
-        warning("XXX 20201110_1711 LG disable neighbours for now, until we have a way to make them less visible : %s" % fpath.name)
+        warning("20201110_1711 LG disable neighbours for now, until we have a way to make them less visible : %s" % fpath.name)
         return False
         #for neigh_ip, neigh_infos in Iproute2_parse.ip_neighbour_show(fpath.read_text()).items():
         #    neigh_node_ip = self.network.find_or_create_node_ip(neigh_ip)
