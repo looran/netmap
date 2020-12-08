@@ -11,7 +11,6 @@ sys.path.append(str(Path(__file__).resolve().parent.parent / 'lib'))
 from iproute2_parse import Iproute2_parse
 
 INPUT_DATA_DIRECTORY = Path(__file__).resolve().parent.parent / 'demo_data'
-print("INPUT_DATA_DIRECTORY = %s" % INPUT_DATA_DIRECTORY)
 
 EXPECTED_RESULTS = {
     'network1/host_192.168.0.3_cmd_ip-address-show.txt': {

@@ -11,7 +11,6 @@ sys.path.append(str(Path(__file__).resolve().parent.parent / 'lib'))
 from k8s_parse import K8s_parse
 
 INPUT_DATA_DIRECTORY = Path(__file__).resolve().parent.parent / 'demo_data'
-print("INPUT_DATA_DIRECTORY = %s" % INPUT_DATA_DIRECTORY)
 
 EXPECTED_RESULTS = {
     'k8s_example/host_192.168.0.3_cmd_netmap_k8s_services_list.txt': [

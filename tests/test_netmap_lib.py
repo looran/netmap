@@ -11,7 +11,6 @@ sys.path.append(str(Path(__file__).resolve().parent.parent / 'lib'))
 import netmap
 
 INPUT_DATA_DIRECTORY = Path(__file__).resolve().parent.parent / 'demo_data'
-print("INPUT_DATA_DIRECTORY = %s" % INPUT_DATA_DIRECTORY)
 
 EXPECTED_RESULTS = {
     'network1': {
