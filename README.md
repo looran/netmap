@@ -139,7 +139,6 @@ $ ./webserver.sh -d ./demo_data/
 
 ### TODO
 
-* show group names vertically (multiline)
 * implement pcap import
 * add versions of a network
 * visualdiff between network versions

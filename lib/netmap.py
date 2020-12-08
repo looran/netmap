@@ -292,7 +292,7 @@ class Network(object):
         streams = defaultdict(lambda: defaultdict(lambda: defaultdict(set))) # { <srcip>: { <dstip>: { [<srcport>, <dstport>]: [ stream, ... ] } } }
         for node in self.nodes:
             if len(node.names) > 0:
-                node_name = ' '.join(sorted(node.names))
+                node_name = '\n'.join(sorted(node.names))
             elif len(node.list_node_ips()) > 1:
                 node_name = 'node ' + ' '.join([node_ip.ip for node_ip in node.list_node_ips()])
             else:
