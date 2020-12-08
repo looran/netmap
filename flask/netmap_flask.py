@@ -32,7 +32,9 @@ def index_view():
     if 'NETMAP_INPUT_DATA_DIRECTORY' not in os.environ:
         raise Exception("NETMAP_INPUT_DATA_DIRECTORY environment variable must be set")
     if 'NETMAP_DEBUG' not in os.environ:
-        raise Exception("NETMAP_DEBUG environment variable must be set")
+        raise Exception("NETMAP_DEBUG environment variable must be set (0, 1 or 2)")
+    if 'NETMAP_ANONYMIZE_HEX_SALT' not in os.environ:
+        raise Exception("NETMAP_ANONYMIZE_HEX_SALT environment variable must be set ('' to disable)")
     input_dir = Path(os.environ['NETMAP_INPUT_DATA_DIRECTORY']).resolve()
     network_list = [str(x.name) for x in input_dir.iterdir() if x.is_dir()]
     return flask.render_template('index.html', input_data_directory=input_dir, network_list=network_list, program_header=netmap.PROGRAM_HEADER)
