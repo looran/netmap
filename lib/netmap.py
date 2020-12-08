@@ -396,10 +396,10 @@ class Netmap(object):
             self.stats["data_gathering_logs"] = ''.join(sorted(["%s" % (f.read_text()) for f in self.network_dir.glob('*.log')]))
 
     def summary(self):
-        s = ""
-        s += self.network.to_str() + '\n'
-        s += "== Statistics ==\n%s" % self.stats
-        return s
+        return self.network.to_str()
+
+    def statistics(self):
+        return "== Statistics ==\n%s" % self.stats
 
     def map(self):
         nodes, links = self.network.to_map()

@@ -39,6 +39,7 @@ if __name__ == "__main__":
             print(json.dumps(netmap.map(), indent=4))
         else:
             print(netmap.summary())
+            print(netmap.statistics())
     else:
         print("Networks in %s:" % data_dir)
         print('\n'.join([str(x.name) for x in data_dir.iterdir() if x.is_dir()]))
