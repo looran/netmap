@@ -388,6 +388,7 @@ class Netmap(object):
         self.stats["nodes_count"] = len(self.network.nodes)
         self.stats["streams_count"] = len(self.network.streams)
         self.stats["last_modification"] = time.strftime("%Y%m%d_%H%M%S", time.gmtime(self.stats["last_modification"]))
+        self.stats["data_gathering_logs"] = ''.join(sorted(["%s" % (f.read_text()) for f in self.network_dir.glob('*.log')]))
         if self.anonymizer:
             self.network.anonymize(self.anonymizer)
 
