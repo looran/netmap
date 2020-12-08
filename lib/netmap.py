@@ -160,7 +160,7 @@ class Node_ip(object):
         self.anonymized = False     # Node_ips are referenced in multiple places so we need a way to ensure anonymizing them only once
 
     def get_id(self):
-        return "%s_%s_%s" % (' '.join(sorted(self.node_iface.node.names)), self.node_iface.name, self.ip)
+        return "%s_%s_%s" % ('_'.join(sorted(self.node_iface.node.names)), self.node_iface.name, self.ip)
 
     def anonymize(self, anon):
         if self.anonymized is False and self.ip not in ['127.0.0.1', '::1']:
@@ -294,14 +294,17 @@ class Network(object):
         for node in self.nodes:
             if len(node.names) > 0:
                 node_name = '\n'.join(sorted(node.names))
+                node_key = '_'.join(sorted(node.names))
             elif len(node.list_node_ips()) > 1:
                 node_name = 'node ' + ' '.join([node_ip.ip for node_ip in node.list_node_ips()])
+                node_key = 'node_' + ''.join([node_ip.ip for node_ip in node.list_node_ips()])
             else:
                 node_name = None
+                node_key = None
             if node_name:
                 map_nodes.append({
                     "category": "node",
-                    "key": node_name,
+                    "key": node_key,
                     "isGroup": "true",
                     "text": node_name,
                 })
@@ -312,8 +315,8 @@ class Network(object):
                         "key": node_ip.get_id(),
                         "text": node_ip.ip,
                     }
-                    if node_name:
-                        mapnode['group'] = node_name
+                    if node_key:
+                        mapnode['group'] = node_key
                     map_nodes.append(mapnode)
                     for stream in node_ip.streams:
                         streams[stream.src_node_ip][stream.dst_node_ip][(stream.src_port, stream.dst_port)].add(stream.name)
