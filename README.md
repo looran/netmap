@@ -68,7 +68,7 @@ test/
 ```
 
 
-### Compatibility
+### Compatibility and dependencies
 
 * On monitored machines
 	* Linux with `iproute2` installed, optionally `tcpdump`
