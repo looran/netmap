@@ -40,9 +40,7 @@ Node
 Streams:
    192.168.0.3:47670 61.200.0.167:443 firefox
    192.168.0.3:57400 41.58.204.138:443 
-
-== Statistics ==
-{'parsed_input_file': 3, 'last_modification': '20201117_190845', 'nodes_count': 3, 'streams_count': 2}""",
+""",
         'map': ([
             {'category': 'node', 'isGroup': 'true', 'key': 'cha', 'text': 'cha'},
             {'category': 'node_ip', 'group': 'cha', 'key': 'cha_lo_127.0.0.1', 'text': '127.0.0.1'},
@@ -105,27 +103,25 @@ Node backend
       TCP/22 
       172.16.0.2
 Streams:
-
-== Statistics ==
-{'parsed_input_file': 2, 'last_modification': '20201207_135511', 'nodes_count': 5, 'streams_count': 0}""",
+""",
         'map': ([
-            {"category": "node", "key": "login login-pod-1", "isGroup": "true", "text": "login login-pod-1"},
-            {"category": "node_ip", "key": "login login-pod-1_lo_127.0.0.1", "text": "127.0.0.1", "group": "login login-pod-1"},
-            {"category": "node_ip", "key": "login login-pod-1_lo_::1", "text": "::1", "group": "login login-pod-1"},
-            {"category": "node_ip", "key": "login login-pod-1_vboxnet0_192.168.56.1", "text": "192.168.56.1", "group": "login login-pod-1"},
-            {"category": "node_ip", "key": "login login-pod-1_vboxnet0_fe80::800:27ff:fe00:0", "text": "fe80::800:27ff:fe00:0", "group": "login login-pod-1"},
-            {"category": "node_ip", "key": "login login-pod-1_enp0s31f6_192.168.0.3", "text": "192.168.0.3", "group": "login login-pod-1"},
-            {"category": "node_ip", "key": "login login-pod-1_eth0_10.0.0.1", "text": "10.0.0.1", "group": "login login-pod-1"},
-            {"category": "node_ip", "key": "login login-pod-1_login_172.16.0.1", "text": "172.16.0.1", "group": "login login-pod-1"},
-            {"category": "node", "key": "login login-pod-2", "isGroup": "true", "text": "login login-pod-2"},
-            {"category": "node_ip", "key": "login login-pod-2_None_10.0.0.2", "text": "10.0.0.2", "group": "login login-pod-2"},
-            {"category": "node_ip", "key": "login login-pod-2_login_172.16.0.1", "text": "172.16.0.1", "group": "login login-pod-2"},
-            {"category": "node", "key": "backend backend-pod-1 dummy", "isGroup": "true", "text": "backend backend-pod-1 dummy"},
-            {"category": "node_ip", "key": "backend backend-pod-1 dummy_None_10.0.0.21", "text": "10.0.0.21", "group": "backend backend-pod-1 dummy"},
-            {"category": "node_ip", "key": "backend backend-pod-1 dummy_backend_172.16.0.2", "text": "172.16.0.2", "group": "backend backend-pod-1 dummy"},
-            {"category": "node", "key": "backend backend-pod-2", "isGroup": "true", "text": "backend backend-pod-2"},
-            {"category": "node_ip", "key": "backend backend-pod-2_None_10.0.0.22", "text": "10.0.0.22", "group": "backend backend-pod-2"},
-            {"category": "node_ip", "key": "backend backend-pod-2_backend_172.16.0.2", "text": "172.16.0.2", "group": "backend backend-pod-2"},
+            {"category": "node", "key": "login_login-pod-1", "isGroup": "true", "text": "login\nlogin-pod-1"},
+            {"category": "node_ip", "key": "login_login-pod-1_lo_127.0.0.1", "text": "127.0.0.1", "group": "login_login-pod-1"},
+            {"category": "node_ip", "key": "login_login-pod-1_lo_::1", "text": "::1", "group": "login_login-pod-1"},
+            {"category": "node_ip", "key": "login_login-pod-1_vboxnet0_192.168.56.1", "text": "192.168.56.1", "group": "login_login-pod-1"},
+            {"category": "node_ip", "key": "login_login-pod-1_vboxnet0_fe80::800:27ff:fe00:0", "text": "fe80::800:27ff:fe00:0", "group": "login_login-pod-1"},
+            {"category": "node_ip", "key": "login_login-pod-1_enp0s31f6_192.168.0.3", "text": "192.168.0.3", "group": "login_login-pod-1"},
+            {"category": "node_ip", "key": "login_login-pod-1_eth0_10.0.0.1", "text": "10.0.0.1", "group": "login_login-pod-1"},
+            {"category": "node_ip", "key": "login_login-pod-1_login_172.16.0.1", "text": "172.16.0.1", "group": "login_login-pod-1"},
+            {"category": "node", "key": "login_login-pod-2", "isGroup": "true", "text": "login\nlogin-pod-2"},
+            {"category": "node_ip", "key": "login_login-pod-2_None_10.0.0.2", "text": "10.0.0.2", "group": "login_login-pod-2"},
+            {"category": "node_ip", "key": "login_login-pod-2_login_172.16.0.1", "text": "172.16.0.1", "group": "login_login-pod-2"},
+            {"category": "node", "key": "backend_backend-pod-1_dummy", "isGroup": "true", "text": "backend\nbackend-pod-1\ndummy"},
+            {"category": "node_ip", "key": "backend_backend-pod-1_dummy_None_10.0.0.21", "text": "10.0.0.21", "group": "backend_backend-pod-1_dummy"},
+            {"category": "node_ip", "key": "backend_backend-pod-1_dummy_backend_172.16.0.2", "text": "172.16.0.2", "group": "backend_backend-pod-1_dummy"},
+            {"category": "node", "key": "backend_backend-pod-2", "isGroup": "true", "text": "backend\nbackend-pod-2"},
+            {"category": "node_ip", "key": "backend_backend-pod-2_None_10.0.0.22", "text": "10.0.0.22", "group": "backend_backend-pod-2"},
+            {"category": "node_ip", "key": "backend_backend-pod-2_backend_172.16.0.2", "text": "172.16.0.2", "group": "backend_backend-pod-2"},
             {"category": "node", "key": "backend", "isGroup": "true", "text": "backend"},
             {"category": "node_ip", "key": "backend_None_10.0.0.23", "text": "10.0.0.23", "group": "backend"},
             {"category": "node_ip", "key": "backend_backend_172.16.0.2", "text": "172.16.0.2", "group": "backend"},
