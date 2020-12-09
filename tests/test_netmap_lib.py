@@ -52,7 +52,17 @@ Streams:
         ], [
             {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found-in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '47670:443 firefox', 'to': '_None_61.200.0.167', 'traffic_percent': 1},
             {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found-in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '57400:443 ', 'to': '_None_41.58.204.138', 'traffic_percent': 1}
-        ])
+        ]),
+        'statistics': {
+            'data_gathering_logs': '',
+            'last_modification': '20201117_190845',
+            'nodes_count': 3,
+            'processed_input_file': 3,
+            'stream_bytes_count_max': 0,
+            'stream_bytes_count_total': 0,
+            'stream_packets_count_max': 0,
+            'stream_packets_count_total': 0,
+            'streams_count': 2}
     },
     'k8s_example': {
         'summary': """== Network 'k8s_example' summary ==
@@ -125,45 +135,41 @@ Streams:
             {"category": "node_ip", "key": "backend_None_10.0.0.23", "text": "10.0.0.23", "group": "backend"},
             {"category": "node_ip", "key": "backend_backend_172.16.0.2", "text": "172.16.0.2", "group": "backend"},
         ],
-        [])
+        []),
+        'statistics': {
+            'data_gathering_logs': '',
+            'last_modification': '20201207_135511',
+            'nodes_count': 5,
+            'processed_input_file': 2,
+            'stream_bytes_count_max': 0,
+            'stream_bytes_count_total': 0,
+            'stream_packets_count_max': 0,
+            'stream_packets_count_total': 0,
+            'streams_count': 0}
     }
 }
 
 
 class Netmap_lib_unittest(unittest.TestCase):
-    def test_network1_summary(self):
+    def test_network1(self):
         self.maxDiff = None
         networkdir_name = "network1"
         network_dir = INPUT_DATA_DIRECTORY / networkdir_name
         nm = netmap.Netmap(network_dir)
         nm.process()
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["summary"], nm.summary())
-
-    def test_network1_map(self):
-        self.maxDiff = None
-        networkdir_name = "network1"
-        network_dir = INPUT_DATA_DIRECTORY / networkdir_name
-        nm = netmap.Netmap(network_dir)
-        nm.process()
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["map"], nm.map())
+        self.assertEqual(EXPECTED_RESULTS[networkdir_name]["statistics"], nm.stats)
 
-    def test_k8sexample_summary(self):
+    def test_k8sexample(self):
         self.maxDiff = None
         networkdir_name = "k8s_example"
         network_dir = INPUT_DATA_DIRECTORY / networkdir_name
         nm = netmap.Netmap(network_dir)
         nm.process()
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["summary"], nm.summary())
-
-    def test_k8sexample_map(self):
-        self.maxDiff = None
-        networkdir_name = "k8s_example"
-        network_dir = INPUT_DATA_DIRECTORY / networkdir_name
-        nm = netmap.Netmap(network_dir)
-        nm.process()
-        import json
-        Path('/tmp/test.txt').write_text(json.dumps(nm.map()))
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["map"], nm.map())
+        self.assertEqual(EXPECTED_RESULTS[networkdir_name]["statistics"], nm.stats)
 
 if __name__ == "__main__":
     unittest.main()
