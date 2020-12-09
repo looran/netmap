@@ -48,10 +48,10 @@ Streams:
             {'category': 'node_ip', 'group': 'cha', 'key': 'cha_vboxnet0_fe80::800:27ff:fe00:0', 'text': 'fe80::800:27ff:fe00:0'},
             {'category': 'node_ip', 'group': 'cha', 'key': 'cha_enp0s31f6_192.168.0.3', 'text': '192.168.0.3'},
             {'category': 'node_ip', 'key': '_None_61.200.0.167', 'text': '61.200.0.167'},
-            {'category': 'node_ip', 'key': '_None_41.58.204.138', 'text': '41.58.204.138'}
+            {'category': 'node_ip', 'key': '_None_41.58.204.138', 'text': '41.58.204.138'},
         ], [
-            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '47670:443 firefox', 'to': '_None_61.200.0.167'},
-           {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '57400:443 ', 'to': '_None_41.58.204.138'}
+            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found-in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '47670:443 firefox', 'to': '_None_61.200.0.167'},
+            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found-in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '57400:443 ', 'to': '_None_41.58.204.138'}
         ])
     },
     'k8s_example': {

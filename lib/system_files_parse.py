@@ -3,7 +3,8 @@ from collections import defaultdict
 
 class System_files_parse(object):
     @classmethod
-    def etc_hosts(cls, text):
+    def etc_hosts(cls, fpath):
+        text = fpath.read_text()
         hosts = defaultdict(list)
         for line in text.split('\n'):
             m = re.match(r"^(?P<ip>[0-9a-f.:]+)[ \t]+(?P<names>.*)", line)
@@ -12,3 +13,7 @@ class System_files_parse(object):
                     if len(name) > 0 and not re.match(r'.*localhost.*', name):
                         hosts[m.group('ip')].append(name)
         return hosts
+
+    @classmethod
+    def hostname(cls, fpath):
+        return fpath.read_text().strip()

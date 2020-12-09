@@ -75,6 +75,7 @@ test/
 	* Supports Kubernetes pods, executes commands from the master in all pods, see [generate_data_k8s.sh](data_gathering/generate_data_k8s.sh)
 * On visualisation machine (where webserver/netmap_cli runs)
 	* `python3` and `python3-flask`
+	* optionally `python3-dpkt` (`pip install dpkt`) for pcap parsing support
 * On web browser
 	* Tested with chromium 87 on Linux
 

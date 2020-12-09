@@ -3,7 +3,8 @@ from collections import defaultdict
 
 class K8s_parse(object):
     @classmethod
-    def netmap_service_list(cls, text):
+    def netmap_service_list(cls, fpath):
+        text = fpath.read_text()
         services = list()
 
         current_service = None

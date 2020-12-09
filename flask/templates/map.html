@@ -587,8 +587,8 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
         $(go.Shape,
             new go.Binding("stroke", "isHighlighted", function(h) { return h ? "orange" : "rgba(100, 100, 100, 0.52)" }).ofObject(),
             new go.Binding("stroke", "isSelected", function(s) { return s ? "dodgerblue" : "rgba(100, 100, 100, 0.52)" }).ofObject(""),  // "" is the root visual element, the Link itself
-            new go.Binding("strokeWidth", "isHighlighted", function(h) { return h ? 5 : 1; }).ofObject(),
-            new go.Binding("strokeWidth", "isSelected", function(s) { return s ? 5 : 1 }).ofObject(""),  // "" is the root visual element, the Link itself
+            new go.Binding("strokeWidth", "isHighlighted", function(h, obj) { return h ? 5 : obj.part.data.traffic_percent; }).ofObject(),
+            new go.Binding("strokeWidth", "isSelected", function(s, obj) { return s ? 5 : obj.part.data.traffic_percent; }).ofObject(""),  // "" is the root visual element, the Link itself
         ),
         $(go.TextBlock, "middle",
             { 

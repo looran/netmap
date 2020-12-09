@@ -21,7 +21,7 @@ EXPECTED_RESULTS = {
 class System_files_parse_unittest(unittest.TestCase):
     def test_etc_hosts(self):
         cmdfile = "network1/host_192.168.0.3_cmd_cat_etc_hosts.txt"
-        hosts = System_files_parse.etc_hosts((INPUT_DATA_DIRECTORY / cmdfile).read_text())
+        hosts = System_files_parse.etc_hosts(INPUT_DATA_DIRECTORY / cmdfile)
         self.assertEqual(EXPECTED_RESULTS[cmdfile], hosts)
 
 if __name__ == "__main__":

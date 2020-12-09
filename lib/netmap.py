@@ -1,6 +1,8 @@
 import re
 import time
+import pprint
 import logging
+import multiprocessing
 from pathlib import Path
 from logging import info, debug, warning
 from collections import defaultdict, Counter
@@ -8,6 +10,7 @@ from collections import defaultdict, Counter
 from iproute2_parse import Iproute2_parse
 from system_files_parse import System_files_parse
 from k8s_parse import K8s_parse
+from pcap_parse import Pcap_parse
 from anonymize import Anonymize
 
 PROGRAM_VERSION = '0.1'
@@ -16,8 +19,8 @@ PROGRAM_HEADER = 'netmap v%s' % PROGRAM_VERSION
 class Node(object):
     def __init__(self):
         self.node_ifaces = dict()   # { 'ifname': Node_iface, ... }
-        self.names = set()         # [ name, ... ]
-        self.found_in = list()      # [ <reference_to_source>, ... ]
+        self.names = set()          # [ name, ... ]
+        self.found_in = set()       # [ <reference_to_source>, ... ]
 
     def find_node_ip(self, ip):
         for node_iface in self.node_ifaces.values():
@@ -155,9 +158,9 @@ class Node_ip(object):
     def __init__(self, node_iface, ip):
         debug("Node_ip node_iface=%s ip=%s" % (node_iface.name, ip))
         self.node_iface = node_iface # Node_iface
-        self.ip = ip                # str
-        self.streams = list()       # [ Stream, ... ]
-        self.anonymized = False     # Node_ips are referenced in multiple places so we need a way to ensure anonymizing them only once
+        self.ip = ip                 # str
+        self.streams = list()        # [ Stream, ... ]
+        self.anonymized = False      # Node_ips are referenced in multiple places so we need a way to ensure anonymizing them only once
 
     def get_id(self):
         return "%s_%s_%s" % ('_'.join(sorted(self.node_iface.node.names)), self.node_iface.name, self.ip)
@@ -170,9 +173,9 @@ class Node_ip(object):
 class Service(object):
     def __init__(self, node_iface, proto, port, name=""):
         self.node_iface = node_iface # Node_iface
-        self.proto = proto      # str
-        self.port = port        # int
-        self.names = set()       # [ name, ... ]
+        self.proto = proto           # str
+        self.port = port             # int
+        self.names = set()           # [ name, ... ]
         if name and name != "":
             self.names.add(name)
 
@@ -189,7 +192,9 @@ class Stream(object):
         self.dst_port = dst_port        # int
         self.dst_service = None         # Service
         self.name = ""                  # str
-        self.found_in = list()          # [ <reference_to_source>, ... ]
+        self.packets_count = 0          # int
+        self.bytes_count = 0          # int
+        self.found_in = set()           # [ <reference_to_source>, ... ]
 
     def anonymize(self, anon):
         self.src_port = anon.int(self.src_port)
@@ -197,6 +202,7 @@ class Stream(object):
         if self.dst_service:
             self.dst_service.anonymize(anon)
         self.name = anon.text(self.name)
+        self.found_in = set()
 
 class Network(object):
     def __init__(self, network_name):
@@ -280,12 +286,12 @@ class Network(object):
                 new = defaultdict(list)
                 rig = Counter(list(zip(*peers_streams.keys()))[i])
                 for r, count in rig.items():
-                    for ports, names in peers_streams.items():
+                    for ports, streams in peers_streams.items():
                         if ports[i] == r:
                             p = list(ports)
                             if count > 1:
                                 p[i^1] = '*'
-                            new[tuple(p)].extend(names)
+                            new[tuple(p)].extend(streams)
                 peers_streams = new
             return peers_streams
         map_nodes = list()
@@ -319,7 +325,7 @@ class Network(object):
                         mapnode['group'] = node_key
                     map_nodes.append(mapnode)
                     for stream in node_ip.streams:
-                        streams[stream.src_node_ip][stream.dst_node_ip][(stream.src_port, stream.dst_port)].add(stream.name)
+                        streams[stream.src_node_ip][stream.dst_node_ip][(stream.src_port, stream.dst_port)].add(stream)
                 if len(node_iface.node_ips) > 0:
                     for neigh_ip in node_iface.neighbours.values():
                         map_links.append({
@@ -332,11 +338,11 @@ class Network(object):
         for srcip, dstips in streams.items():
             for dstip, peers_streams in dstips.items():
                 peers_streams = peers_streams_reduce(peers_streams)
-                for ports, names in peers_streams.items():
-                    if len(names) > 1:
-                        names = "x%d %s" % (len(names), ' '.join(set(names)))
+                for ports, streams in peers_streams.items():
+                    if len(streams) > 1:
+                        names = "x%d %s" % (len(streams), ' '.join(set([ s.name for s in streams])))
                     else:
-                        names = ' '.join(names)
+                        names = streams[0].name
                     text = "%s:%s %s" % (ports[0], ports[1], names)
                     map_links.append({
                         "category": "stream",
@@ -345,10 +351,14 @@ class Network(object):
                         "text": text,
                         "color": "rgba(200, 200, 200, 0.52)",
                         "font": "8pt sans-serif",
+                        "found-in": ' '.join(sorted(set([o for s in streams for o in s.found_in]))),
+                        "traffic_percent": 1, # XXX for future link weight depending on stream bytes count
                     })
         return map_nodes, map_links
 
 class Netmap(object):
+    MULTIPROCESSING_ENABLED = True
+
     def __init__(self, network_dir, anonymize_hex_salt=None, debugval=False):
         self.network_dir = network_dir
         if anonymize_hex_salt:
@@ -362,33 +372,46 @@ class Netmap(object):
         if not self.network_dir.exists():
             raise Exception("network data directory does not exist : %s" % self.network_dir)
         self.network = Network(network_dir.name)
-        self.stats = {"parsed_input_file":0, "last_modification": 0}
+        self.stats = {
+            "processed_input_file":0, "last_modification": 0,
+            "stream_packets_count_max": 0, "stream_packets_count_total": 0,
+            "stream_bytes_count_max": 0, "stream_bytes_count_total": 0,
+        }
 
     def process(self):
         FILES_ORDER = [
-            ("cmd", "ip-address-show", None,            self._process_cmd_ip_address_show),
-            ("cmd", "ip-route-show", None,              self._process_cmd_ip_route_show),
-            ("cmd", "hostname", None,                   self._process_cmd_hostname),
-            ("cmd", "cat_etc_hosts", None,              self._process_cmd_cat_etc_hosts),
-            ("cmd", "ip-neighbour-show", None,          self._process_cmd_ip_neighbour_show),
-            ("cmd", "netmap_k8s_services_list", None,   self._process_cmd_netmap_k8s_services_list),
-            ("cmd", "ss-anp", None,                     self._process_cmd_ss_anp),
-            ("pcap", "*", "(?P<ip>[0-9.]*)",            self._process_pcap),
+            # fcat   ftype                       fargs  parse_func                      multicore   process_func
+            ("cmd",  "ip-address-show",          None,  Iproute2_parse.ip_address_show, False,      self._process_cmd_ip_address_show),
+            ("cmd",  "hostname",                 None,  System_files_parse.hostname,    False,      self._process_cmd_hostname),
+            ("cmd",  "cat_etc_hosts",            None,  System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
+            ("cmd",  "netmap_k8s_services_list", None,  K8s_parse.netmap_service_list,  False,      self._process_cmd_netmap_k8s_services_list),
+            ("cmd",  "ss-anp",                   None,  Iproute2_parse.ss,              True,       self._process_cmd_ss_anp),
+            ("pcap", "*", "(?P<iface>[a-zA-Z0-9\.]*)",  Pcap_parse.parse,               True,       self._process_pcap),
         ]
-        for fcat, ftype, fargs, fprocess in FILES_ORDER:
-            for fpath in self.network_dir.glob('host_*_%s_%s.txt' % (fcat, ftype)):
-                fmatch = re.match(r"host_(?P<ip>[0-9.]*)_%s_%s.txt" % (fcat, ftype if fargs is None else fargs), fpath.name)
+        if self.MULTIPROCESSING_ENABLED:
+            pool = multiprocessing.Pool()
+        for fcat, ftype, fargs, parse_func, multicore, process_func in FILES_ORDER:
+            process_queue = list()
+            for fpath in self.network_dir.glob('host_*_%s_%s.*' % (fcat, ftype)):
+                fmatch = re.match(r"host_(?P<ip>[0-9.]*)_%s_%s\..*" % (fcat, ftype if fargs is None else fargs), fpath.name)
                 if not fmatch:
-                    warning("ignored file because host ip is not recognised : %s" % fpath)
+                    warning("ignored file because naming is not recognised : %s" % fpath)
                     continue
                 if fpath.stat().st_mtime > self.stats["last_modification"]:
                     self.stats["last_modification"] = fpath.stat().st_mtime
                 debug("parsing input cmd file %s : %s" % (fpath, fmatch.groups()))
-                node_ip = self.network.find_or_create_node_ip(fmatch.group('ip'))
-                node_iface = node_ip.node_iface
-                node = node_iface.node
-                if fprocess(fpath, fmatch, node_ip, node_iface, node):
-                    self.stats["parsed_input_file"] += 1
+                process_queue.append([fpath, parse_func, fmatch.groupdict()])
+            if self.MULTIPROCESSING_ENABLED and multicore is True:
+                map_func = pool.map
+            else:
+                map_func = map
+            for fpath, _, fpath_matches, parse_res in map_func(self._pool_parse, process_queue):
+                node_ip = self.network.find_or_create_node_ip(fpath_matches['ip'])
+                if process_func(fpath, fpath_matches, node_ip, node_ip.node_iface, node_ip.node_iface.node, parse_res):
+                    self.stats["processed_input_file"] += 1
+        if self.MULTIPROCESSING_ENABLED:
+            pool.close()
+            pool.terminate()
         self.stats["nodes_count"] = len(self.network.nodes)
         self.stats["streams_count"] = len(self.network.streams)
         self.stats["last_modification"] = time.strftime("%Y%m%d_%H%M%S", time.gmtime(self.stats["last_modification"]))
@@ -402,14 +425,21 @@ class Netmap(object):
         return self.network.to_str()
 
     def statistics(self):
-        return "== Statistics ==\n%s" % self.stats
+        return "== Statistics ==\n%s" % pprint.pformat(self.stats)
 
     def map(self):
         nodes, links = self.network.to_map()
         return nodes, links
 
-    def _process_cmd_ip_address_show(self, fpath, fmatch, node_ip, node_iface, node):
-        for iface in Iproute2_parse.ip_address_show(fpath.read_text()).values():
+    def _pool_parse(self, args):
+        """ used by process() to handle parsing
+            in case of multiprocessing task, it will be executed in each subprocess of the multiprocessing.Pool
+            in case of multiprocessing disabled in the task, it well be executed in the main process """
+        parse_res = args[1](args[0]) # parse(fpath)
+        return args + [ parse_res ]
+
+    def _process_cmd_ip_address_show(self, fpath, fpath_matches, node_ip, node_iface, node, ifaces):
+        for iface in ifaces.values():
             for ip in iface['ip']:
                 othernode_ip = self.network.find_node_ip(ip)
                 if othernode_ip and othernode_ip.node_iface.node != node and not othernode_ip.node_iface.name:
@@ -422,30 +452,24 @@ class Netmap(object):
                 dbgnodeip = node.add_or_update_ip(ip, iface['name'], linkaddr)
         return True
         
-    def _process_cmd_ip_route_show(self, fpath, fmatch, node_ip, node_iface, node):
-        warning("ip-route-show parsing is not yet supported %s" % fpath.name)
-        return False
-
-    def _process_cmd_hostname(self, fpath, fmatch, node_ip, node_iface, node):
-        hostname = fpath.read_text().strip()
+    def _process_cmd_hostname(self, fpath, fpath_matches, node_ip, node_iface, node, hostname):
         node.names.add(hostname)
-        return True
 
-    def _process_cmd_cat_etc_hosts(self, fpath, fmatch, node_ip, node_iface, node):
-        for ip, names in System_files_parse.etc_hosts(fpath.read_text()).items():
+    def _process_cmd_cat_etc_hosts(self, fpath, fpath_matches, node_ip, node_iface, node, hosts):
+        for ip, names in hosts.items():
             if ip == '127.0.0.1' or self.network.find_node(ip) == node:
                 node.names.update(set(names))
         return True
 
-    def _process_cmd_ip_neighbour_show(self, fpath, fmatch, node_ip, node_iface, node):
+    def _process_cmd_ip_neighbour_show(self, fpath, fpath_matches, node_ip, node_iface, node):
         # 20201110_1711 LG disable neighbours for now, until we have a way to make them less visible
         #for neigh_ip, neigh_infos in Iproute2_parse.ip_neighbour_show(fpath.read_text()).items():
         #    neigh_node_ip = self.network.find_or_create_node_ip(neigh_ip)
         #    node_ip.node_iface.neighbours[neigh_ip] = neigh_node_ip
         return False
 
-    def _process_cmd_netmap_k8s_services_list(self, fpath, fmatch, node_ip, node_iface, node):
-        for ks in K8s_parse.netmap_service_list(fpath.read_text()):
+    def _process_cmd_netmap_k8s_services_list(self, fpath, fpath_matches, node_ip, node_iface, node, ks_list):
+        for ks in ks_list:
             debug("_process_cmd_netmap_k8s_services_list: %s" % ks)
             for pod_ip, pod_name in ks['service_pods']:
                 pod_node_ip = self.network.find_or_create_node_ip(pod_ip)
@@ -460,8 +484,8 @@ class Netmap(object):
                         service_node_ip.node_iface.add_or_update_service(port_proto, port_number, port_name)
         return True
 
-    def _process_cmd_ss_anp(self, fpath, fmatch, node_ip, node_iface, node):
-        for sst in Iproute2_parse.ss(fpath.read_text()):
+    def _process_cmd_ss_anp(self, fpath, fpath_matches, node_ip, node_iface, node, sst_list):
+        for sst in sst_list:
             if sst['netid'] in ['tcp', 'udp', 'sctp']:
                 if sst['state'] == 'LISTEN':
                     if sst['local_ip'] in ['0.0.0.0', '::', '*']:
@@ -487,8 +511,26 @@ class Netmap(object):
                         remote_node_ip.streams.append(stream)
                     if 'process_name' in sst:
                         stream.name = sst['process_name']
+                    stream.found_in.add("%s" % fpath.name)
         return True
 
-    def _process_pcap(self, fpath, fmatch, node_ip, node_iface, node):
-        warning("pcap parsing is not yet supported %s" % fpath.name)
-        return False
+    def _process_pcap(self, fpath, fpath_matches, node_ip, node_iface, node, streams):
+        for pcapstream, stats in streams.items():
+            src, srcport, dst, dstport, proto = pcapstream
+            src_node_ip = self.network.find_or_create_node_ip(src)
+            dst_node_ip = self.network.find_or_create_node_ip(dst)
+            stream = self.network.find_or_create_stream(src_node_ip, srcport, dst_node_ip, dstport)
+            stream.found_in.add("%s" % fpath.name)
+            stream.packets_count = stats['packets']
+            if stats['packets'] > self.stats["stream_packets_count_max"]:
+                self.stats["stream_packets_count_max"] = stats['packets']
+            self.stats["stream_packets_count_total"] += stats['packets']
+            stream.bytes_count = stats['bytes']
+            if stats['bytes'] > self.stats["stream_bytes_count_max"]:
+                self.stats["stream_bytes_count_max"] = stats['bytes']
+            self.stats["stream_bytes_count_total"] += stats['bytes']
+            if stream not in src_node_ip.streams:
+                src_node_ip.streams.append(stream)
+            if stream not in dst_node_ip.streams:
+                dst_node_ip.streams.append(stream)
+        return True

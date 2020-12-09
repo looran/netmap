@@ -66,27 +66,27 @@ class Iproute2_parse_unittest(unittest.TestCase):
     def test_ip_address_show(self):
         Iproute2_parse.DEBUG = False
         cmdfile = "network1/host_192.168.0.3_cmd_ip-address-show.txt"
-        interfaces = Iproute2_parse.ip_address_show((INPUT_DATA_DIRECTORY / cmdfile).read_text())
+        interfaces = Iproute2_parse.ip_address_show(INPUT_DATA_DIRECTORY / cmdfile)
         self.assertEqual(EXPECTED_RESULTS[cmdfile], interfaces)
 
     def test_ip_neighbour_show(self):
         Iproute2_parse.DEBUG = False
         cmdfile = "network1/host_192.168.0.3_cmd_ip-neighbour-show.txt"
-        interfaces = Iproute2_parse.ip_neighbour_show((INPUT_DATA_DIRECTORY / cmdfile).read_text())
+        interfaces = Iproute2_parse.ip_neighbour_show(INPUT_DATA_DIRECTORY / cmdfile)
         self.assertEqual(EXPECTED_RESULTS[cmdfile], interfaces)
 
     def test_ss(self):
         self.maxDiff = None
         Iproute2_parse.DEBUG = False
         cmdfile = "network1/host_192.168.0.3_cmd_ss-anp.txt"
-        streams = Iproute2_parse.ss((INPUT_DATA_DIRECTORY / cmdfile).read_text())
+        streams = Iproute2_parse.ss(INPUT_DATA_DIRECTORY / cmdfile)
         self.assertEqual(EXPECTED_RESULTS[cmdfile], streams)
 
     def test_ss_address_with_percents(self):
         self.maxDiff = None
         Iproute2_parse.DEBUG = False
         cmdfile = "unit_tests/host_192.168.0.1_cmd_ss-anp.txt"
-        streams = Iproute2_parse.ss((INPUT_DATA_DIRECTORY / cmdfile).read_text())
+        streams = Iproute2_parse.ss(INPUT_DATA_DIRECTORY / cmdfile)
         self.assertEqual(EXPECTED_RESULTS[cmdfile], streams)
 
 if __name__ == "__main__":

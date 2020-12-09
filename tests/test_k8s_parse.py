@@ -39,7 +39,7 @@ class System_files_parse_unittest(unittest.TestCase):
     def test_etc_hosts(self):
         self.maxDiff = None
         txtfile = "k8s_example/host_192.168.0.3_cmd_netmap_k8s_services_list.txt"
-        k8s_services = K8s_parse.netmap_service_list((INPUT_DATA_DIRECTORY / txtfile).read_text())
+        k8s_services = K8s_parse.netmap_service_list(INPUT_DATA_DIRECTORY / txtfile)
         self.assertEqual(EXPECTED_RESULTS[txtfile], k8s_services)
 
 if __name__ == "__main__":

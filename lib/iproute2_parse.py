@@ -5,7 +5,8 @@ class Iproute2_parse(object):
     DEBUG = False
 
     @classmethod
-    def ip_address_show(cls, text):
+    def ip_address_show(cls, fpath):
+        text = fpath.read_text()
         interfaces = dict()
 
         current_iface = None
@@ -38,7 +39,8 @@ class Iproute2_parse(object):
         return interfaces
 
     @classmethod
-    def ip_neighbour_show(cls, text):
+    def ip_neighbour_show(cls, fpath):
+        text = fpath.read_text()
         neighbours = dict()
 
         for line in text.split('\n'):
@@ -56,7 +58,8 @@ class Iproute2_parse(object):
         return neighbours
 
     @classmethod
-    def ss(cls, text):
+    def ss(cls, fpath):
+        text = fpath.read_text()
         streams = list()
 
         for line in text.split('\n')[1:]:
