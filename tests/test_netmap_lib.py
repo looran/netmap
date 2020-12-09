@@ -50,8 +50,8 @@ Streams:
             {'category': 'node_ip', 'key': '_None_61.200.0.167', 'text': '61.200.0.167'},
             {'category': 'node_ip', 'key': '_None_41.58.204.138', 'text': '41.58.204.138'},
         ], [
-            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found-in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '47670:443 firefox', 'to': '_None_61.200.0.167'},
-            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found-in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '57400:443 ', 'to': '_None_41.58.204.138'}
+            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found-in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '47670:443 firefox', 'to': '_None_61.200.0.167', 'traffic_percent': 1},
+            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found-in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '57400:443 ', 'to': '_None_41.58.204.138', 'traffic_percent': 1}
         ])
     },
     'k8s_example': {
