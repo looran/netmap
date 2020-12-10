@@ -6,9 +6,10 @@ SSH_OPTS=${SSH_OPTS:-""}
 
 set -e
 
-[ $# -lt 2 ] && echo "usage: $0 [-T] <output_directory> <ip|sshalias>[:k8s][:ssh_pre=\"SSH-CMD-PREFIX\"] ...]" && exit 1
+[ $# -lt 2 ] && echo "usage: $0 [-v] [-T] <output_directory> <ip|sshalias>[:k8s][:ssh_pre=\"SSH-CMD-PREFIX\"] ...]" && exit 1
 gendata_opts=""
-[ "$1" = "-T" ] && gendata_opts="-T" && shift
+[ "$1" = "-v" ] && gendata_opts="$gendata_opts -v" && shift
+[ "$1" = "-T" ] && gendata_opts="$gendata_opts -T" && shift
 output_dir="$1" && shift
 [ ! -e "$output_dir" ] && echo "error: directory does not exist: $output_dir" && exit 1
 now=$(date +%Y%m%d_%H%M%S)
