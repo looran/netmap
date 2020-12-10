@@ -77,7 +77,7 @@ test/
 	* `python3` and `python3-flask`
 	* optionally `python3-dpkt` (`pip install dpkt`) for pcap parsing support
 * On web browser
-	* Tested with chromium 87 on Linux
+	* Tested with chromium 87 on Linux, Firefox 83 on Linux
 
 ### Data input format
 
