@@ -185,12 +185,13 @@ class Service(object):
         self.names = set([anon.text(x) for x in self.names])
 
 class Stream(object):
-    def __init__(self, src_node_ip, src_port, dst_node_ip, dst_port):
+    def __init__(self, src_node_ip, src_port, dst_node_ip, dst_port, proto):
         self.src_node_ip = src_node_ip  # Node_ip
         self.src_port = src_port        # int
         self.dst_node_ip = dst_node_ip  # Node_ip
         self.dst_port = dst_port        # int
         self.dst_service = None         # Service
+        self.proto = proto              # str
         self.name = ""                  # str
         self.packets_count = 0          # int
         self.bytes_count = 0          # int
@@ -201,6 +202,8 @@ class Stream(object):
             self.src_port = anon.int(self.src_port)
         if self.dst_port:
             self.dst_port = anon.int(self.dst_port)
+        if self.proto:
+            self.proto = anon.text(self.proto)
         if self.dst_service:
             self.dst_service.anonymize(anon)
         self.name = anon.text(self.name)
@@ -237,15 +240,17 @@ class Network(object):
             node_ip = self.create_node_ip(ip, iface, mac)
         return node_ip
 
-    def find_or_create_stream(self, src_node_ip, src_port, dst_node_ip, dst_port):
+    def find_or_create_stream(self, src_node_ip, src_port, dst_node_ip, dst_port, proto):
         for stream in self.streams:
             if ((src_node_ip == stream.src_node_ip and src_port == stream.src_port
-                    and dst_node_ip == stream.dst_node_ip and dst_port == stream.dst_port)
+                    and dst_node_ip == stream.dst_node_ip and dst_port == stream.dst_port
+                    and proto == stream.proto)
                  or
                 (src_node_ip == stream.dst_node_ip and src_port == stream.dst_port
-                    and dst_node_ip == stream.src_node_ip and dst_port == stream.src_port)):
+                    and dst_node_ip == stream.src_node_ip and dst_port == stream.src_port
+                    and proto == stream.proto)):
                 return stream
-        stream = Stream(src_node_ip, src_port, dst_node_ip, dst_port)
+        stream = Stream(src_node_ip, src_port, dst_node_ip, dst_port, proto)
         self.streams.append(stream)
         return stream
 
@@ -272,18 +277,19 @@ class Network(object):
                 for node_ip in node_iface.node_ips.values():
                     s += "      %s\n" % node_ip.ip
                     for stream in node_ip.streams:
-                        s += "         %s:%s %s:%s %s\n" % (stream.src_node_ip.ip, stream.src_port, stream.dst_node_ip.ip, stream.dst_port, stream.name)
+                        s += "         %s:%s %s:%s/%s %s\n" % (stream.src_node_ip.ip, stream.src_port, stream.dst_node_ip.ip, stream.dst_port, stream.proto, stream.name)
                 if len(node_iface.neighbours) > 0:
                     s += "      Neighbours\n"
                     for neigh_ip in node_iface.neighbours.keys():
                         s += "         %s\n" % neigh_ip
         s += "Streams:\n"
         for stream in self.streams:
-            s += "   %s:%s %s:%s %s\n" % (stream.src_node_ip.ip, stream.src_port, stream.dst_node_ip.ip, stream.dst_port, stream.name)
+            s += "   %s:%s %s:%s/%s %s\n" % (stream.src_node_ip.ip, stream.src_port, stream.dst_node_ip.ip, stream.dst_port, stream.proto, stream.name)
         return s
 
     def to_map(self):
         def peers_streams_reduce(peers_streams):
+            """ XXX differentiate streams on proto, additionnally to srcport and dstport """
             for i in [0, 1]:
                 new = defaultdict(list)
                 rig = Counter(list(zip(*peers_streams.keys()))[i])
@@ -342,10 +348,10 @@ class Network(object):
                 peers_streams = peers_streams_reduce(peers_streams)
                 for ports, streams in peers_streams.items():
                     if len(streams) > 1:
-                        names = "x%d %s" % (len(streams), ' '.join(set([ s.name for s in streams])))
+                        names = "x%d %s" % (len(streams), ' '.join(sorted(set([ s.name for s in streams]))))
                     else:
                         names = streams[0].name
-                    text = "%s:%s %s" % (ports[0], ports[1], names)
+                    text = "%s:%s/%s %s" % (ports[0], ports[1], ','.join(sorted(set([s.proto for s in streams]))), names)
                     map_links.append({
                         "category": "stream",
                         "from": srcip.get_id(),
@@ -505,8 +511,7 @@ class Netmap(object):
                 elif sst['state'] in ['ESTAB', 'TIME-WAIT', 'CLOSE-WAIT', 'FIN-WAIT2']:
                     local_node_ip = self.network.find_or_create_node_ip(sst['local_ip'])
                     remote_node_ip = self.network.find_or_create_node_ip(sst['remote_ip'])
-                    stream = self.network.find_or_create_stream(
-                            local_node_ip, sst['local_port'], remote_node_ip, sst['remote_port'])
+                    stream = self.network.find_or_create_stream(local_node_ip, sst['local_port'], remote_node_ip, sst['remote_port'], sst['netid'])
                     if stream not in local_node_ip.streams:
                         local_node_ip.streams.append(stream)
                     if stream not in remote_node_ip.streams:
@@ -521,7 +526,7 @@ class Netmap(object):
             src, srcport, dst, dstport, proto = pcapstream
             src_node_ip = self.network.find_or_create_node_ip(src)
             dst_node_ip = self.network.find_or_create_node_ip(dst)
-            stream = self.network.find_or_create_stream(src_node_ip, srcport, dst_node_ip, dstport)
+            stream = self.network.find_or_create_stream(src_node_ip, srcport, dst_node_ip, dstport, proto)
             stream.found_in.add("%s #%d (%dpkt %dbytes)" % (fpath.name, stats['first_packet'], stats['packets'], stats['bytes']))
             stream.packets_count = stats['packets']
             if stats['packets'] > self.stats["stream_packets_count_max"]:

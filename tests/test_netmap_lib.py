@@ -26,19 +26,19 @@ Node cha
       fe80::800:27ff:fe00:0
    enp0s31f6 55:55:55:55:55:55
       192.168.0.3
-         192.168.0.3:47670 61.200.0.167:443 firefox
-         192.168.0.3:57400 41.58.204.138:443 
+         192.168.0.3:47670 61.200.0.167:443/tcp firefox
+         192.168.0.3:57400 41.58.204.138:443/tcp 
 Node 
    None None
       61.200.0.167
-         192.168.0.3:47670 61.200.0.167:443 firefox
+         192.168.0.3:47670 61.200.0.167:443/tcp firefox
 Node 
    None None
       41.58.204.138
-         192.168.0.3:57400 41.58.204.138:443 
+         192.168.0.3:57400 41.58.204.138:443/tcp 
 Streams:
-   192.168.0.3:47670 61.200.0.167:443 firefox
-   192.168.0.3:57400 41.58.204.138:443 
+   192.168.0.3:47670 61.200.0.167:443/tcp firefox
+   192.168.0.3:57400 41.58.204.138:443/tcp 
 """,
         'map': ([
             {'category': 'node', 'isGroup': 'true', 'key': 'cha', 'text': 'cha'},
@@ -50,8 +50,8 @@ Streams:
             {'category': 'node_ip', 'key': '_None_61.200.0.167', 'text': '61.200.0.167'},
             {'category': 'node_ip', 'key': '_None_41.58.204.138', 'text': '41.58.204.138'},
         ], [
-            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '47670:443 firefox', 'to': '_None_61.200.0.167', 'traffic_percent': 1},
-            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '57400:443 ', 'to': '_None_41.58.204.138', 'traffic_percent': 1}
+            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '47670:443/tcp firefox', 'to': '_None_61.200.0.167', 'traffic_percent': 1},
+            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '57400:443/tcp ', 'to': '_None_41.58.204.138', 'traffic_percent': 1}
         ]),
         'statistics': {
             'data_gathering_logs': '',

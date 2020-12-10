@@ -50,12 +50,12 @@ class Pcap_parse(object):
                 ip = eth.data
                 src = socket.inet_ntoa(ip.src)
                 dst = socket.inet_ntoa(ip.dst)
-                transname = type(ip.data).__name__
+                transname = type(ip.data).__name__.lower()
                 trans = ip.data
-                if transname in ["TCP", "UDP", "SCTP"]:
+                if transname in ["tcp", "udp", "sctp"]:
                     sport = trans.sport
                     dport = trans.dport
-                elif transname in ["ICMP"]:
+                elif transname in ["icmp"]:
                     sport = dport = None
                 else:
                     continue
