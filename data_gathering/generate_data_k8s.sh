@@ -14,8 +14,10 @@ trace() { echo "# $*" >&2; "$@"; }
 
 set -e
 
-[ $# -lt 1 -o "$1" = "-h" ] && echo "usage: $0 [-T] <output_directory> <this_host_ip>" && exit 1
+[ $# -lt 1 -o "$1" = "-h" ] && echo "usage: $0 [-v] [-T] <output_directory> <this_host_ip>" && exit 1
 do_tcpdump=1
+redir_stderr=/dev/null
+[ "$1" = "-v" ] && redir_stderr=/dev/stderr && shift
 [ "$1" == "-T" ] && do_tcpdump=0 && shift
 out_dir="$1"
 host_ip="$2"
