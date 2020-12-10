@@ -197,8 +197,10 @@ class Stream(object):
         self.found_in = set()           # [ <reference_to_source>, ... ]
 
     def anonymize(self, anon):
-        self.src_port = anon.int(self.src_port)
-        self.dst_port = anon.int(self.dst_port)
+        if self.src_port:
+            self.src_port = anon.int(self.src_port)
+        if self.dst_port:
+            self.dst_port = anon.int(self.dst_port)
         if self.dst_service:
             self.dst_service.anonymize(anon)
         self.name = anon.text(self.name)
