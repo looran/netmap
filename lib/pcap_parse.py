@@ -27,16 +27,24 @@ class Pcap_parse(object):
     def parse(cls, path):
         debug("Pcap_parse %s" % path)
         if PCAP_PARSE_ENABLED is False:
-            print("pcap parsing is disabled")
+            warning("pcap parsing is disabled")
             return {}
         streams = dict()
         with path.open('rb') as f:
             try:
                 cap = dpkt.pcap.Reader(f)
-            except:
-                cap = dpkt.pcapng.Reader(f)
-            for ts, pkt in cap:
-                eth = dpkt.ethernet.Ethernet(pkt)
+            except Exception as e:
+                try:
+                    cap = dpkt.pcapng.Reader(f)
+                except Exception as e2:
+                    warning("could not open pcap file %s :\npcap error: %s\npcapng error: %s" % (path, e, e2))
+                    return {}
+            for n, (ts, pkt) in enumerate(cap):
+                try:
+                    eth = dpkt.ethernet.Ethernet(pkt)
+                except Exception as e:
+                    warning("could not open ethernet layer from packet %d %s : %s\n    in %s" % (n, ts, e, path))
+                    continue
                 if not isinstance(eth.data, dpkt.ip.IP):
                     continue
                 ip = eth.data
