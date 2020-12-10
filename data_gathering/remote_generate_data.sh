@@ -34,7 +34,7 @@ for remote_host in "$@"; do
 		trace $ssh_pre scp $SSH_OPTS $D/generate_data_k8s.sh $sshalias:/tmp/netmap/
 		trace $ssh_pre ssh $SSH_OPTS $sshalias "SSH_NODES_CMD="$SSH_NODES_CMD" /tmp/netmap/generate_data_k8s.sh $gendata_opts /tmp/netmap/data $ip"
 	fi
-	trace $ssh_pre rsync -e "ssh $SSH_OPTS" -avP $sshalias:"/tmp/netmap/data/" $output_dir || trace $ssh_pre scp $SSH_OPTS -r $sshalias:"/tmp/netmap/data/*" $output_dir
+	trace $ssh_pre rsync -e "ssh $SSH_OPTS" -avPz $sshalias:"/tmp/netmap/data/" $output_dir || trace $ssh_pre scp $SSH_OPTS -r $sshalias:"/tmp/netmap/data/*" $output_dir
 	trace $ssh_pre ssh $SSH_OPTS $sshalias "rm -rf /tmp/netmap"
 done
 
