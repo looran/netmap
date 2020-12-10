@@ -519,12 +519,12 @@ class Netmap(object):
                     if sst['local_ip'] in ['0.0.0.0', '::', '*']:
                         iface = node.find_or_create_iface('any')
                     else:
-                        if 'local_iface' in sst: # if iface is explicitely specified, deamon might be binded on different ip
+                        if 'local_iface' in sst:
+                            # if iface is explicitely specified, deamon might be binded on different ip
                             nip = node.add_or_update_ip(sst['local_ip'], sst['local_iface'])
                         else:
-                            nip = node.find_node_ip(sst['local_ip'])
-                            if not nip:
-                                raise Exception("Interface not found for ip %s : %s" % (sst['local_ip'], str(sst)))
+                            # socket binds on ip that is not attributed to interface, create it anyway
+                            nip = node.add_or_update_ip(sst['local_ip'], None)
                         iface = nip.node_iface
                     if (sst['netid'], sst['local_port']) not in iface.services:
                         iface.add_or_update_service(sst['netid'], sst['local_port'], sst['process_name'] if 'process_name' in sst else "")
