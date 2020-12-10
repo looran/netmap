@@ -81,12 +81,13 @@ class Node(object):
             self.node_ifaces[ifname].name = ifname
 
     def anonymize(self, anon):
-        self.names = set([anon.text(x) for x in self.names])
         node_ifaces = dict()
         for ifacename, iface in self.node_ifaces.items():
             iface.anonymize(anon)
             node_ifaces[iface.name] = iface
         self.node_ifaces = node_ifaces
+        self.names = set([anon.text(x) for x in self.names])
+        self.found_in = set()
 
     def to_str(self):
         s = "Node %s\n" % self.names
@@ -159,6 +160,7 @@ class Node_ip(object):
         debug("Node_ip node_iface=%s ip=%s" % (node_iface.name, ip))
         self.node_iface = node_iface # Node_iface
         self.ip = ip                 # str
+        self.found_in = set()        # [ <reference_to_source>, ... ]
         self.streams = list()        # [ Stream, ... ]
         self.anonymized = False      # Node_ips are referenced in multiple places so we need a way to ensure anonymizing them only once
 
@@ -169,6 +171,7 @@ class Node_ip(object):
         if self.anonymized is False and self.ip not in ['127.0.0.1', '::1']:
             self.ip = anon.ip(self.ip)
             self.anonymized = True
+        self.found_in = set()
 
 class Service(object):
     def __init__(self, node_iface, proto, port, name=""):
@@ -321,6 +324,7 @@ class Network(object):
                     "key": node_key,
                     "isGroup": "true",
                     "text": node_name,
+                    "found_in": '\n'.join(sorted(node.found_in)),
                 })
             for node_iface in node.node_ifaces.values():
                 for node_ip in node_iface.node_ips.values():
@@ -328,6 +332,7 @@ class Network(object):
                         "category": "node_ip",
                         "key": node_ip.get_id(),
                         "text": node_ip.ip,
+                        "found_in": '\n'.join(sorted(node_ip.found_in)),
                     }
                     if node_key:
                         mapnode['group'] = node_key
@@ -447,6 +452,7 @@ class Netmap(object):
         return args + [ parse_res ]
 
     def _process_cmd_ip_address_show(self, fpath, fpath_matches, node_ip, node_iface, node, ifaces):
+        node.found_in.add(fpath.name)
         for iface in ifaces.values():
             for ip in iface['ip']:
                 othernode_ip = self.network.find_node_ip(ip)
@@ -457,13 +463,15 @@ class Netmap(object):
                     node.copy_from(othernode_ip.node_iface.node)
                     self.network.delete_node(othernode_ip.node_iface.node)
                 linkaddr = iface['link_addr'] if 'link_addr' in iface else None
-                dbgnodeip = node.add_or_update_ip(ip, iface['name'], linkaddr)
+                our_node_ip = node.add_or_update_ip(ip, iface['name'], linkaddr)
+                our_node_ip.found_in.add(fpath.name)
         return True
         
     def _process_cmd_hostname(self, fpath, fpath_matches, node_ip, node_iface, node, hostname):
         node.names.add(hostname)
 
     def _process_cmd_cat_etc_hosts(self, fpath, fpath_matches, node_ip, node_iface, node, hosts):
+        node.found_in.add(fpath.name)
         for ip, names in hosts.items():
             if ip == '127.0.0.1' or self.network.find_node(ip) == node:
                 node.names.update(set(names))
@@ -488,11 +496,14 @@ class Netmap(object):
                     pod_node.names.add(ks['service_name'])
                 if ks['service_ip']:
                     service_node_ip = pod_node.add_or_update_ip(ks['service_ip'], ks['service_name'])
+                    service_node_ip.found_in.add(fpath.name)
+                    service_node_ip.node_iface.node.found_in.add(fpath.name)
                     for port_proto, port_number, port_name in ks['service_ports']:
                         service_node_ip.node_iface.add_or_update_service(port_proto, port_number, port_name)
         return True
 
     def _process_cmd_ss_anp(self, fpath, fpath_matches, node_ip, node_iface, node, sst_list):
+        node.found_in.add("%s" % fpath.name)
         for sst in sst_list:
             if sst['netid'] in ['tcp', 'udp', 'sctp']:
                 if sst['state'] == 'LISTEN':
@@ -522,6 +533,8 @@ class Netmap(object):
         return True
 
     def _process_pcap(self, fpath, fpath_matches, node_ip, node_iface, node, streams):
+        node.found_in.add(fpath.name)
+        node_ip.found_in.add(fpath.name)
         for pcapstream, stats in streams.items():
             src, srcport, dst, dstport, proto = pcapstream
             src_node_ip = self.network.find_or_create_node_ip(src)

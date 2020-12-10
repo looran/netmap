@@ -349,25 +349,45 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
             let description = "";
             switch (obj.data.category) {
             case "node":
+                var links_count = 0;
+                links_description = "";
                 obj.memberParts.each(function(m) {
                     if (m instanceof go.Node) {
                         m.findLinksConnected().each(function(l) {
+                            links_count += 1;
                             target = l.fromNode == m ? l.toNode : l.fromNode
 							if (target !== null) {
-								description += "<u>stream</u> " + l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;<u>to</u> " + target.data.text
+								links_description += "<u>stream</u> " + l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>to</u> " + target.data.text
 								if (target.containingGroup !== null)
-									description += " : " + target.containingGroup.data.text;
-								description += "<br/>";
+									links_description += " : " + target.containingGroup.data.text;
+								links_description += "<br/>";
 							}
                         });
                     }
                 });
+                description += links_count + " streams<br/>"
+                if (obj.data.found_in) {
+                    var files = obj.data.found_in.split("\n");
+                    for (var i = 0; i < files.length; i += 1) {
+                        f = files[i];
+                        description += "<u>found in</u> <a href='"+f+"' target='_blank'>"+f+"</a><br/>";
+                    }
+                }
+                description += links_description;
                 break;
             case "node_ip":
+                description += obj.findLinksConnected().count + " streams<br/>"
+                if (obj.data.found_in) {
+                    var files = obj.data.found_in.split("\n");
+                    for (var i = 0; i < files.length; i += 1) {
+                        f = files[i];
+                        description += "<u>found in</u> <a href='"+f+"' target='_blank'>"+f+"</a><br/>";
+                    }
+                }
                 obj.findLinksConnected().each(function(l) {
                     target = l.fromNode == obj ? l.toNode : l.fromNode
 					if (target !== null) {
-						description += "<u>stream</u> " + l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;<u>to</u> " + target.data.text
+						description += "<u>stream</u> " + l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<u>to</u> " + target.data.text
 						if (target.containingGroup !== null)
 							description += " : " + target.containingGroup.data.text;
 						description += "<br/>";
