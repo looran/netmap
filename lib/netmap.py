@@ -2,6 +2,7 @@ import re
 import time
 import pprint
 import logging
+import contextlib
 import multiprocessing
 from pathlib import Path
 from logging import info, debug, warning
@@ -401,30 +402,26 @@ class Netmap(object):
             ("cmd",  "ss-anp",                   None,  Iproute2_parse.ss,              True,       self._process_cmd_ss_anp),
             ("pcap", "*", "(?P<iface>[a-zA-Z0-9-_\.]*)",  Pcap_parse.parse,               True,       self._process_pcap),
         ]
-        if self.MULTIPROCESSING_ENABLED:
-            pool = multiprocessing.Pool()
-        for fcat, ftype, fargs, parse_func, multicore, process_func in FILES_ORDER:
-            process_queue = list()
-            for fpath in self.network_dir.glob('host_*_%s_%s.*' % (fcat, ftype)):
-                fmatch = re.match(r"host_(?P<ip>[0-9.]*)_%s_%s\..*" % (fcat, ftype if fargs is None else fargs), fpath.name)
-                if not fmatch:
-                    warning("ignored file because naming is not recognised : %s" % fpath)
-                    continue
-                if fpath.stat().st_mtime > self.stats["last_modification"]:
-                    self.stats["last_modification"] = fpath.stat().st_mtime
-                debug("parsing input cmd file %s : %s" % (fpath, fmatch.groups()))
-                process_queue.append([fpath, parse_func, fmatch.groupdict()])
-            if self.MULTIPROCESSING_ENABLED and multicore is True:
-                map_func = pool.map
-            else:
-                map_func = map
-            for fpath, _, fpath_matches, parse_res in map_func(self._pool_parse, process_queue):
-                node_ip = self.network.find_or_create_node_ip(fpath_matches['ip'])
-                if process_func(fpath, fpath_matches, node_ip, node_ip.node_iface, node_ip.node_iface.node, parse_res):
-                    self.stats["processed_input_file"] += 1
-        if self.MULTIPROCESSING_ENABLED:
-            pool.close()
-            pool.terminate()
+        with self._processing_context() as pool:
+            for fcat, ftype, fargs, parse_func, multicore, process_func in FILES_ORDER:
+                process_queue = list()
+                for fpath in self.network_dir.glob('host_*_%s_%s.*' % (fcat, ftype)):
+                    fmatch = re.match(r"host_(?P<ip>[0-9.]*)_%s_%s\..*" % (fcat, ftype if fargs is None else fargs), fpath.name)
+                    if not fmatch:
+                        warning("ignored file because naming is not recognised : %s" % fpath)
+                        continue
+                    if fpath.stat().st_mtime > self.stats["last_modification"]:
+                        self.stats["last_modification"] = fpath.stat().st_mtime
+                    debug("parsing input cmd file %s : %s" % (fpath, fmatch.groups()))
+                    process_queue.append([fpath, parse_func, fmatch.groupdict()])
+                if pool and multicore is True:
+                    map_func = pool.map
+                else:
+                    map_func = map
+                for fpath, _, fpath_matches, parse_res in map_func(self._pool_parse, process_queue):
+                    node_ip = self.network.find_or_create_node_ip(fpath_matches['ip'])
+                    if process_func(fpath, fpath_matches, node_ip, node_ip.node_iface, node_ip.node_iface.node, parse_res):
+                        self.stats["processed_input_file"] += 1
         self.stats["nodes_count"] = len(self.network.nodes)
         self.stats["streams_count"] = len(self.network.streams)
         self.stats["last_modification"] = time.strftime("%Y%m%d_%H%M%S", time.gmtime(self.stats["last_modification"]))
@@ -443,6 +440,13 @@ class Netmap(object):
     def map(self):
         nodes, links = self.network.to_map()
         return nodes, links
+
+    @contextlib.contextmanager
+    def _processing_context(self):
+        if self.MULTIPROCESSING_ENABLED:
+            yield multiprocessing.Pool()
+        else:
+            yield None
 
     def _pool_parse(self, args):
         """ used by process() to handle parsing
