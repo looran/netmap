@@ -27,11 +27,11 @@
             </div>
             <div id="buttons" style="display: block; margin-left: auto; margin-right: auto;">
                 <div id="tools"  style="display: block;">
-                    <button id="download_png" disabled="disabled" title="XXX 20201110_1759 LG: PNG download is limiting graph size to 2000x2000, why ?">Download PNG</button>
-                    <button id="download_svg">Download SVG</button>
-                    <button id="fullscreen">Fullscreen</button>
-                    <button id="zoom_to_fit">Zoom to fit</button>
-                    <button id="zoom_to_selection">Zoom to selection</button>
+                    <input type="button" id="download_png" value="Download PNG" disabled="disabled" title="XXX 20201110_1759 LG: PNG download is limiting graph size to 2000x2000, why ?"/>
+                    <input type="button" id="download_svg" value="Download SVG"/>
+                    <input type="button" id="fullscreen" value="Fullscreen"/>
+                    <input type="button" id="zoom_to_fit" value="Zoom to fit"/>
+                    <input type="button" id="zoom_to_selection" value="Zoom to selection"/>
                 </div>
                 <div id="layout" style="margin: 5px;">
                     <select id="layout_sel" onchange="change_layout(this.value)">
@@ -54,10 +54,10 @@
                 </div>
                 <div id="search" style="display: block; margin:5px;">
                     <input type="search" id="search_entry" onkeypress="if (event.keyCode === 13) searchDiagram()">
-                    <button onclick="searchDiagram()">Search</button>
+                    <input type="button"  onclick="searchDiagram()" value="Search"/>
                 </div>
                 <div id="server" style="margin: 5px;">
-                    <button id="save_nodes_position">Save positions and settings to server</button>
+                    <input type="button" id="save_nodes_position" value="Save positions and settings to server"/>
                 </div>
                 <div id="message" style="font-family:monospace;"></div>
             </div>
