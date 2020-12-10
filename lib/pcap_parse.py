@@ -31,17 +31,22 @@ class Pcap_parse(object):
             return {}
         streams = dict()
         with path.open('rb') as f:
-            try:
-                cap = dpkt.pcap.Reader(f)
+            try: cap = dpkt.pcap.Reader(f)
             except Exception as e:
-                try:
-                    cap = dpkt.pcapng.Reader(f)
+                try: cap = dpkt.pcapng.Reader(f)
                 except Exception as e2:
                     warning("could not open pcap file %s :\npcap error: %s\npcapng error: %s" % (path, e, e2))
                     return {}
-            for n, (ts, pkt) in enumerate(cap, 1):
-                try:
-                    eth = dpkt.ethernet.Ethernet(pkt)
+            n = 0
+            while True:
+                n += 1
+                try: ts, pkt = next(cap)
+                except StopIteration:
+                    break
+                except Exception as e:
+                    warning("could not read packet %d, interrupting parse : %s\n    in %s" % (n, e, path))
+                    return streams
+                try: eth = dpkt.ethernet.Ethernet(pkt)
                 except Exception as e:
                     warning("could not open ethernet layer from packet %d %s : %s\n    in %s" % (n, ts, e, path))
                     continue
