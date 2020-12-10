@@ -26,7 +26,7 @@ if [ $do_tcpdump -eq 1 ]; then
     echo "[+] running network capture on host $host_ip" >&2
     trace which tcpdump
     ip -o a |awk '{print $2}' |sort |uniq \
-        |sudo timeout 30 xargs -P0 -t -I IFACE tcpdump -ni IFACE -c 30000 -w $out_dir/host_${host_ip}_pcap_IFACE.pcap 2>$redir_stderr ||true
+        |sudo xargs -P0 -t -I IFACE timeout -s 2 30 tcpdump -ni IFACE -c 30000 -w $out_dir/host_${host_ip}_pcap_IFACE.pcap ||true
 fi
 
 echo "[*] DONE, host $host_ip results stored in $out_dir" >&2
