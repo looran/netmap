@@ -40,6 +40,7 @@ while IFS=',' read -r k_namespace k_name k_status k_pod_ip k_node_name k_host_ip
         trace $SSH_NODES_CMD root@$k_node_name "nsenter -u -p -n -t $c_pid ip address show" > $out_dir/host_${k_pod_ip}_cmd_ip-address-show.txt
         trace $SSH_NODES_CMD root@$k_node_name "nsenter -u -p -n -t $c_pid ss -anp" > $out_dir/host_${k_pod_ip}_cmd_ss-anp.txt
         trace $SSH_NODES_CMD root@$k_node_name "nsenter -u -p -n -t $c_pid ip neigh show" > $out_dir/host_${k_pod_ip}_cmd_ip-neighbour-show.txt
+        trace $SSH_NODES_CMD root@$k_node_name "nsenter -u -p -n -t $c_pid ps -auxww" > $out_dir/host_${k_pod_ip}_cmd_ps-auxww.txt
         # we use -m to enter filesystem mount namespace and try to find cat
         trace $SSH_NODES_CMD root@$k_node_name "nsenter -u -p -n -m -t $c_pid /bin/cat /etc/hosts" > $out_dir/host_${k_pod_ip}_cmd_cat_etc_hosts.txt ||true
         if [ $do_tcpdump -eq 1 ]; then

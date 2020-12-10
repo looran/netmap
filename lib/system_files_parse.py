@@ -13,7 +13,3 @@ class System_files_parse(object):
                     if len(name) > 0 and not re.match(r'.*localhost.*', name):
                         hosts[m.group('ip')].append(name)
         return hosts
-
-    @classmethod
-    def hostname(cls, fpath):
-        return fpath.read_text().strip()

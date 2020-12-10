@@ -20,6 +20,7 @@ trace hostname > $out_dir/host_${host_ip}_cmd_hostname.txt
 trace ip address show > $out_dir/host_${host_ip}_cmd_ip-address-show.txt
 trace sudo ss -anp > $out_dir/host_${host_ip}_cmd_ss-anp.txt
 trace ip neigh show > $out_dir/host_${host_ip}_cmd_ip-neighbour-show.txt
+trace ps -auxww > $out_dir/host_${host_ip}_cmd_ps-auxww.txt || ps -ef > $out_dir/host_${host_ip}_cmd_ps-auxww.txt
 trace cat /etc/hosts > $out_dir/host_${host_ip}_cmd_cat_etc_hosts.txt
 
 if [ $do_tcpdump -eq 1 ]; then
