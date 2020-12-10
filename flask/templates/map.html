@@ -376,6 +376,14 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
                 });
                 break;
             case "stream":
+                description += "<u>from</u>: " + obj.fromNode.data.text;
+                if (obj.fromNode.containingGroup !== null)
+                    description += " : " + obj.fromNode.containingGroup.data.text;
+                description += "<br/>";
+                description += "<u>to</u>: " + obj.toNode.data.text;
+                if (obj.toNode.containingGroup !== null)
+                    description += " : " + obj.toNode.containingGroup.data.text;
+                description += "<br/>";
                 if (obj.data.found_in) {
                     var files = obj.data.found_in.split("\n");
                     for (var i = 0; i < files.length; i += 1) {
@@ -385,14 +393,6 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
                         description += "<u>found in</u> <a href='"+link+"' target='_blank'>"+link+"</a> "+text+"<br/>";
                     }
                 }
-                description += "<u>from</u>: " + obj.fromNode.data.text;
-                if (obj.fromNode.containingGroup !== null)
-                    description += " : " + obj.fromNode.containingGroup.data.text;
-                description += "<br/>";
-                description += "<u>to</u>: " + obj.toNode.data.text;
-                if (obj.toNode.containingGroup !== null)
-                    description += " : " + obj.toNode.containingGroup.data.text;
-                description += "<br/>";
                 break;
             }
             document.getElementById("targetinfo_category").textContent = category;
