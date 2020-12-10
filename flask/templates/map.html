@@ -355,7 +355,7 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
                         m.findLinksConnected().each(function(l) {
                             target = l.fromNode == m ? l.toNode : l.fromNode
 							if (target !== null) {
-								description += l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;" + target.data.text
+								description += "<u>stream</u> " + l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;<u>to</u> " + target.data.text
 								if (target.containingGroup !== null)
 									description += " : " + target.containingGroup.data.text;
 								description += "<br/>";
@@ -368,7 +368,7 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
                 obj.findLinksConnected().each(function(l) {
                     target = l.fromNode == obj ? l.toNode : l.fromNode
 					if (target !== null) {
-						description += l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;" + target.data.text
+						description += "<u>stream</u> " + l.data.text + "<br/>&nbsp;&nbsp;&nbsp;&nbsp;<u>to</u> " + target.data.text
 						if (target.containingGroup !== null)
 							description += " : " + target.containingGroup.data.text;
 						description += "<br/>";
