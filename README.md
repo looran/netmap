@@ -5,11 +5,12 @@ netmap generates text analysis and interactive graphical map of a network from s
 ![Netmap of a dummy network](demo_data/dummynet/dummynet.gif)
 
 Features:
-* Input from simple system commands output text files (`ip a s`, `ss -anp`, `kubectl`...) and standard network `pcap` traces
+* **Input from simple system commands output text files** (`ip a s`, `ss -anp`, `kubectl`...) and standard network `pcap` traces
 * Text output analysis gives a quick overview of nodes and network streams
-* Graphical map output showing network nodes helps understand visually the architecture of a network
-* Interactivity of the map allows to place network nodes manually in a fashion where it makes best sense for understanding
+* **Graphical map output** showing network nodes helps understand visually the architecture of a network
+* **Interactivity** of the map allows to place network nodes manually in a fashion where it makes best sense for understanding
 * Network streams between nodes show application-level communications
+* **Access to the source information file/pcap from the WebUI** for a given node/stream
 
 ### Usage
 
@@ -142,10 +143,23 @@ $ ./webserver.sh -d ./demo_data/
 
 ### TODO
 
-* implement pcap import
+first
+* option to make link size change depending on traffic amount
+* option to make node size change depending on traffic amount
+* simple UI modes
+    * Map: tree view, orthogonal links
+    * Graph: forcelayout-strong, normal links
+    * Graph traffic: forcelayout-strong, normal links, link and node size represents traffic amount
+* fix Firefox buttons size that are too big
+* fix Network.to_map.peers_streams_reduce() to handle proto
+
+second
 * add versions of a network
+    * generating more data adds information, not removing old one
+    * possibility to view versions independently
+
+later
 * visualdiff between network versions
 * save to named profile on server
 * color link label background depending on port, choose color dynamically
-* k8s: re-verify that we don't miss containers
 * maybe when highlight node make the other nodes/links more transparent
