@@ -386,7 +386,7 @@ class Netmap(object):
             ("cmd",  "cat_etc_hosts",            None,  System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
             ("cmd",  "netmap_k8s_services_list", None,  K8s_parse.netmap_service_list,  False,      self._process_cmd_netmap_k8s_services_list),
             ("cmd",  "ss-anp",                   None,  Iproute2_parse.ss,              True,       self._process_cmd_ss_anp),
-            ("pcap", "*", "(?P<iface>[a-zA-Z0-9\.]*)",  Pcap_parse.parse,               True,       self._process_pcap),
+            ("pcap", "*", "(?P<iface>[a-zA-Z0-9-_\.]*)",  Pcap_parse.parse,               True,       self._process_pcap),
         ]
         if self.MULTIPROCESSING_ENABLED:
             pool = multiprocessing.Pool()
