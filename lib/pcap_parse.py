@@ -19,7 +19,7 @@ def find_stream(streams, src, srcport, dst, dstport, proto):
     if orother in streams:
         return orother
     # it did not exist, so create the stream
-    streams[oneway] = { "packets": 0, "bytes": 0 }
+    streams[oneway] = { "packets": 0, "bytes": 0, "first_packet": None }
     return oneway
 
 class Pcap_parse(object):
@@ -39,7 +39,7 @@ class Pcap_parse(object):
                 except Exception as e2:
                     warning("could not open pcap file %s :\npcap error: %s\npcapng error: %s" % (path, e, e2))
                     return {}
-            for n, (ts, pkt) in enumerate(cap):
+            for n, (ts, pkt) in enumerate(cap, 1):
                 try:
                     eth = dpkt.ethernet.Ethernet(pkt)
                 except Exception as e:
@@ -62,4 +62,6 @@ class Pcap_parse(object):
                 key = find_stream(streams, src, sport, dst, dport, transname)
                 streams[key]['packets'] += 1
                 streams[key]['bytes'] += int(ip.len)
+                if streams[key]['first_packet'] is None:
+                    streams[key]['first_packet'] = n
         return streams

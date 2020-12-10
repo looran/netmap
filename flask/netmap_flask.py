@@ -95,6 +95,14 @@ def netmap_view(network_name):
 
     return flask.render_template('map.html', network_name=network_name_displayed, map_dict=map_dict, gojs_version=gojs_version, network_statistics=nm.stats, program_header=netmap.PROGRAM_HEADER)
 
+@app.route('/map/<network_name>/<path:datafile>')
+def netmap_datafile(network_name, datafile):
+    if os.environ['NETMAP_ANONYMIZE_HEX_SALT'] != "":
+        flask.abort(404)
+        return "404" # UNREACHED
+    input_dir = os.environ['NETMAP_INPUT_DATA_DIRECTORY']
+    return flask.send_from_directory(input_dir, network_name + '/' + datafile)
+
 @app.route('/map/<network_name>/save/', methods=["POST"])
 def save(network_name):
     req = flask.request.get_json()

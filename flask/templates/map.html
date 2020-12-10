@@ -376,6 +376,15 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
                 });
                 break;
             case "stream":
+                if (obj.data.found_in) {
+                    var files = obj.data.found_in.split("\n");
+                    for (var i = 0; i < files.length; i += 1) {
+                        f = files[i];
+                        link = f.split(" ")[0]
+                        text = f.split(" ").slice(1).join(' ')
+                        description += "<u>found in</u> <a href='"+link+"' target='_blank'>"+link+"</a> "+text+"<br/>";
+                    }
+                }
                 description += "<u>from</u>: " + obj.fromNode.data.text;
                 if (obj.fromNode.containingGroup !== null)
                     description += " : " + obj.fromNode.containingGroup.data.text;

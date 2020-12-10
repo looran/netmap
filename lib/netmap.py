@@ -353,7 +353,7 @@ class Network(object):
                         "text": text,
                         "color": "rgba(200, 200, 200, 0.52)",
                         "font": "8pt sans-serif",
-                        "found-in": ' '.join(sorted(set([o for s in streams for o in s.found_in]))),
+                        "found_in": '\n'.join(sorted(set([o for s in streams for o in s.found_in]))),
                         "traffic_percent": 1, # XXX for future link weight depending on stream bytes count
                     })
         return map_nodes, map_links
@@ -522,7 +522,7 @@ class Netmap(object):
             src_node_ip = self.network.find_or_create_node_ip(src)
             dst_node_ip = self.network.find_or_create_node_ip(dst)
             stream = self.network.find_or_create_stream(src_node_ip, srcport, dst_node_ip, dstport)
-            stream.found_in.add("%s" % fpath.name)
+            stream.found_in.add("%s #%d (%dpkt %dbytes)" % (fpath.name, stats['first_packet'], stats['packets'], stats['bytes']))
             stream.packets_count = stats['packets']
             if stats['packets'] > self.stats["stream_packets_count_max"]:
                 self.stats["stream_packets_count_max"] = stats['packets']
