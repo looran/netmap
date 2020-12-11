@@ -143,24 +143,40 @@ $ ./webserver.sh -d ./demo_data/
 
 ### TODO
 
-first
+``` shell
+= first =
+* show that we are in freeze mode
+	red border around target information box
 * fix duplicated links (ss + pcap)
 * option to make link size change depending on traffic amount
 * option to make node size change depending on traffic amount
-* fix Firefox buttons size that are too big
 * fix Network.to_map.peers_streams_reduce() to handle proto
 
-second
+= second =
 * simple UI modes
     * Map: tree view, orthogonal links
     * Graph: forcelayout-strong, normal links
     * Graph traffic: forcelayout-strong, normal links, link and node size represents traffic amount
+* select multiple nodes nodes highlights links only between the selected nodes
 * add versions of a network
     * generating more data adds information, not removing old one
     * possibility to view versions independently
+* maybe when highlight node make the other nodes/links more transparent
 
-later
+= later =
+* provide connectivity to users
+	* scripts/deploy_connectivity.sh _my_host
+		deploy public ssh key to the different nodes
+		prepare ssh config for users
+	* provide access in UI
+		"connectivity requiremenents" link
+			show private ssh key
+			show ssh config
+		button in information box that shows + copy to clipbuffer
+				specific info info for the targeted node
+			ssh command to log-in to data repository
+			ssh command to log-in to node
 * visualdiff between network versions
 * save to named profile on server
 * color link label background depending on port, choose color dynamically
-* maybe when highlight node make the other nodes/links more transparent
+```
