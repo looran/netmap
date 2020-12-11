@@ -543,7 +543,11 @@ class Netmap(object):
 
     def _process_pcap(self, fpath, fpath_matches, node_ip, node_iface, node, streams):
         node.found_in.add(fpath.name)
-        node_ip.found_in.add(fpath.name)
+        for niface in node.node_ifaces.values():
+            # add pcap reference to each node_ip of the captured interface
+            if niface.name == fpath_matches['iface']:
+                for nip in niface.node_ips.values():
+                    nip.found_in.add(fpath.name)
         for pcapstream, stats in streams.items():
             src, srcport, dst, dstport, proto = pcapstream
             src_node_ip = self.network.find_or_create_node_ip(src)
