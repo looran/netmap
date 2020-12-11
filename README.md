@@ -144,16 +144,17 @@ $ ./webserver.sh -d ./demo_data/
 ### TODO
 
 first
+* fix duplicated links (ss + pcap)
 * option to make link size change depending on traffic amount
 * option to make node size change depending on traffic amount
-* simple UI modes
-    * Map: tree view, orthogonal links
-    * Graph: forcelayout-strong, normal links
-    * Graph traffic: forcelayout-strong, normal links, link and node size represents traffic amount
 * fix Firefox buttons size that are too big
 * fix Network.to_map.peers_streams_reduce() to handle proto
 
 second
+* simple UI modes
+    * Map: tree view, orthogonal links
+    * Graph: forcelayout-strong, normal links
+    * Graph traffic: forcelayout-strong, normal links, link and node size represents traffic amount
 * add versions of a network
     * generating more data adds information, not removing old one
     * possibility to view versions independently
