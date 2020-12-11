@@ -143,7 +143,7 @@ $ ./webserver.sh -d ./demo_data/
 
 ### TODO
 
-``` shell
+```
 = first =
 * show that we are in freeze mode
 	red border around target information box
@@ -156,7 +156,7 @@ $ ./webserver.sh -d ./demo_data/
 * simple UI modes
     * Map: tree view, orthogonal links
     * Graph: forcelayout-strong, normal links
-    * Graph traffic: forcelayout-strong, normal links, link and node size represents traffic amount
+    * Graph traffic: forcelayout-strong, normal links, link and node size shows traffic amount
 * select multiple nodes nodes highlights links only between the selected nodes
 * add versions of a network
     * generating more data adds information, not removing old one
