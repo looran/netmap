@@ -55,7 +55,6 @@ Streams:
         ]),
         'statistics': {
             'data_gathering_logs': '',
-            'last_modification': '20201117_190845',
             'nodes_count': 3,
             'processed_input_file': 3,
             'stream_bytes_count_max': 0,
@@ -140,7 +139,6 @@ Streams:
         []),
         'statistics': {
             'data_gathering_logs': '',
-            'last_modification': '20201207_135511',
             'nodes_count': 5,
             'processed_input_file': 2,
             'stream_bytes_count_max': 0,
@@ -159,6 +157,7 @@ class Netmap_lib_unittest(unittest.TestCase):
         network_dir = INPUT_DATA_DIRECTORY / networkdir_name
         nm = netmap.Netmap(network_dir)
         nm.process()
+        nm.stats.pop('last_modification') # ignore modification date that could change
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["summary"], nm.summary())
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["map"], nm.map())
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["statistics"], nm.stats)
@@ -169,6 +168,7 @@ class Netmap_lib_unittest(unittest.TestCase):
         network_dir = INPUT_DATA_DIRECTORY / networkdir_name
         nm = netmap.Netmap(network_dir)
         nm.process()
+        nm.stats.pop('last_modification') # ignore modification date that could change
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["summary"], nm.summary())
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["map"], nm.map())
         self.assertEqual(EXPECTED_RESULTS[networkdir_name]["statistics"], nm.stats)
