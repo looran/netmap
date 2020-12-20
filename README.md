@@ -153,6 +153,7 @@ $ ./webserver.sh -d ./demo_data/
 * fix Network.to_map.peers_streams_reduce() to handle proto
 
 = second =
+* URL link to highlight a specific node / links
 * simple UI modes
     * Map: tree view, orthogonal links
     * Graph: forcelayout-strong, normal links
