@@ -18,9 +18,18 @@ EXPECTED_RESULTS = {
     }
 }
 
+def assert_import_dpkt():
+    try:
+        import dpkt
+    except Exception as e:
+        issue = "WARNING: skipping unit tests : %s" % e
+        print(issue)
+        raise unittest.SkipTest(issue)
+
 class Pcap_parse_unittest(unittest.TestCase):
     def test_network2_with_pcap(self):
         self.maxDiff = None
+        assert_import_dpkt()
         pcapfile = "network2_with_pcap/host_192.168.3.131_pcap_enp0s31f6.pcap"
         parsed = Pcap_parse.parse(INPUT_DATA_DIRECTORY / pcapfile)
         self.assertEqual(EXPECTED_RESULTS[pcapfile], parsed)
