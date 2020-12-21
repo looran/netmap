@@ -400,7 +400,8 @@ class Netmap(object):
             # fcat   ftype                       fargs  parse_func                      multicore   process_func
             ("cmd",  "ip-address-show",          None,  Iproute2_parse.ip_address_show, False,      self._process_cmd_ip_address_show),
             ("cmd",  "hostname",                 None,  System_commands.generic_strip,  False,      self._process_cmd_hostname),
-            ("cmd",  "ps-auxww",                 None,  System_commands.generic,        False,      self._process_cmd_ps_auxww),
+            ("cmd",  "ps-auxww",                 None,  System_commands.generic,        False,      self._process_cmd_ps),
+            ("cmd",  "ps-ef",                    None,  System_commands.generic,        False,      self._process_cmd_ps),
             ("cmd",  "cat_etc_hosts",            None,  System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
             ("cmd",  "netmap_k8s_services_list", None,  K8s_parse.netmap_service_list,  False,      self._process_cmd_netmap_k8s_services_list),
             ("cmd",  "ss-anp",                   None,  Iproute2_parse.ss,              True,       self._process_cmd_ss_netstat),
@@ -479,7 +480,7 @@ class Netmap(object):
     def _process_cmd_hostname(self, fpath, fpath_matches, node_ip, node_iface, node, hostname):
         node.names.add(hostname)
 
-    def _process_cmd_ps_auxww(self, fpath, fpath_matches, node_ip, node_iface, node, ps_output):
+    def _process_cmd_ps(self, fpath, fpath_matches, node_ip, node_iface, node, ps_output):
         node.found_in.add(fpath.name)
 
     def _process_cmd_cat_etc_hosts(self, fpath, fpath_matches, node_ip, node_iface, node, hosts):
