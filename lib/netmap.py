@@ -9,6 +9,7 @@ from logging import info, debug, warning
 from collections import defaultdict, Counter
 
 from iproute2_parse import Iproute2_parse
+from netstat_parse import Netstat_parse
 from system_files_parse import System_files_parse
 from system_commands import System_commands
 from k8s_parse import K8s_parse
@@ -383,6 +384,7 @@ class Netmap(object):
         logging.basicConfig(level=logging.INFO if debugval == 0 else logging.DEBUG, format="%(levelname)s %(message)s")
         if debugval >= 2:
             Iproute2_parse.DEBUG = True
+            Netstat_parse.DEBUG = True
         debug("network data directory: %s" % self.network_dir)
         if not self.network_dir.exists():
             raise Exception("network data directory does not exist : %s" % self.network_dir)
@@ -401,7 +403,8 @@ class Netmap(object):
             ("cmd",  "ps-auxww",                 None,  System_commands.generic,        False,      self._process_cmd_ps_auxww),
             ("cmd",  "cat_etc_hosts",            None,  System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
             ("cmd",  "netmap_k8s_services_list", None,  K8s_parse.netmap_service_list,  False,      self._process_cmd_netmap_k8s_services_list),
-            ("cmd",  "ss-anp",                   None,  Iproute2_parse.ss,              True,       self._process_cmd_ss_anp),
+            ("cmd",  "ss-anp",                   None,  Iproute2_parse.ss,              True,       self._process_cmd_ss_netstat),
+            ("cmd",  "netstat-anp",              None,  Netstat_parse.netstat,          True,       self._process_cmd_ss_netstat),
             ("pcap", "*", "(?P<iface>[a-zA-Z0-9-_\.]*)",  Pcap_parse.parse,             True,       self._process_pcap),
         ]
         with self._processing_context() as pool:
@@ -511,10 +514,10 @@ class Netmap(object):
                         service_node_ip.node_iface.add_or_update_service(port_proto, port_number, port_name)
         return True
 
-    def _process_cmd_ss_anp(self, fpath, fpath_matches, node_ip, node_iface, node, sst_list):
+    def _process_cmd_ss_netstat(self, fpath, fpath_matches, node_ip, node_iface, node, sst_list):
         node.found_in.add("%s" % fpath.name)
         for sst in sst_list:
-            if sst['netid'] in ['tcp', 'udp', 'sctp']:
+            if sst['proto'] in ['tcp', 'udp', 'sctp']:
                 if sst['state'] == 'LISTEN':
                     if sst['local_ip'] in ['0.0.0.0', '::', '*']:
                         iface = node.find_or_create_iface('any')
@@ -526,12 +529,12 @@ class Netmap(object):
                             # socket binds on ip that is not attributed to interface, create it anyway
                             nip = node.add_or_update_ip(sst['local_ip'], None)
                         iface = nip.node_iface
-                    if (sst['netid'], sst['local_port']) not in iface.services:
-                        iface.add_or_update_service(sst['netid'], sst['local_port'], sst['process_name'] if 'process_name' in sst else "")
+                    if (sst['proto'], sst['local_port']) not in iface.services:
+                        iface.add_or_update_service(sst['proto'], sst['local_port'], sst['process_name'] if 'process_name' in sst else "")
                 elif sst['state'] in ['ESTAB', 'TIME-WAIT', 'CLOSE-WAIT', 'FIN-WAIT2']:
                     local_node_ip = self.network.find_or_create_node_ip(sst['local_ip'])
                     remote_node_ip = self.network.find_or_create_node_ip(sst['remote_ip'])
-                    stream = self.network.find_or_create_stream(local_node_ip, sst['local_port'], remote_node_ip, sst['remote_port'], sst['netid'])
+                    stream = self.network.find_or_create_stream(local_node_ip, sst['local_port'], remote_node_ip, sst['remote_port'], sst['proto'])
                     if stream not in local_node_ip.streams:
                         local_node_ip.streams.append(stream)
                     if stream not in remote_node_ip.streams:

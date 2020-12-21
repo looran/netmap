@@ -7,6 +7,7 @@ all:
 	./test_netmap_lib.py
 	./test_k8s_parse.py
 	./test_pcap_parse.py
+	./test_netstat_parse.py
 
 clean:
 	rm -f *.pyc

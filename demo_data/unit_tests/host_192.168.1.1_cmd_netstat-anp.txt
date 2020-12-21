@@ -1,0 +1,40 @@
+Active Internet connections (servers and established)
+Proto Recv-Q Send-Q Local Address               Foreign Address             State       PID/Program name   
+tcp        0      0 0.0.0.0:12345               0.0.0.0:*                   LISTEN      3406/toto        
+tcp        0      0 127.0.0.1:233               0.0.0.0:*                   LISTEN      3171/titi   
+tcp        0      0 0.0.0.0:12346               0.0.0.0:*                   LISTEN      3405/toto        
+tcp        0      0 0.0.0.0:53434               0.0.0.0:*                   LISTEN      3379/toto        
+tcp        0      0 0.0.0.0:43922               0.0.0.0:*                   LISTEN      3039/tata      
+tcp        0      0 192.168.1.1:32011           192.168.1.2:56885           TIME_WAIT   -                   
+tcp        0      0 192.168.1.1:52361           192.168.1.2:22              TIME_WAIT   -                   
+tcp        0      0 127.0.0.1:233               127.0.0.1:63783             ESTABLISHED 3031/titi      
+tcp        0      0 192.168.1.1:32011           192.168.1.2:56856           TIME_WAIT   -                   
+tcp        0      0 127.0.0.1:233               127.0.0.1:63620             ESTABLISHED 3031/titi      
+tcp        0      0 192.168.1.1:32011           192.168.1.2:56960           TIME_WAIT   -                   
+tcp        0      0 127.0.0.1:233               127.0.0.1:63622             ESTABLISHED 3031/titi      
+tcp        0      0 192.168.1.1:32011           192.168.1.2:56876           TIME_WAIT   -                   
+tcp        0      0 127.0.0.1:63783             127.0.0.1:12345             ESTABLISHED 3526/moustik
+tcp        0      0 192.168.1.1:12345           192.168.1.8:8888            ESTABLISHED 3526/toto
+tcp        0      0 192.168.1.1:32011           192.168.1.2:56970           TIME_WAIT   -                   
+tcp        0      0 :::22                       :::*                        LISTEN      2223/sshd           
+udp        0      0 192.168.2.11:123            0.0.0.0:*                               2233/ntpd           
+udp        0    376 192.168.1.1:123             0.0.0.0:*                               2233/ntpd           
+udp        0      0 127.0.0.1:123               0.0.0.0:*                               2233/ntpd           
+udp        0      0 fe80::f816:3eff:fe5:123     :::*                                    2233/ntpd           
+udp        0      0 ::1:123                     :::*                                    2233/ntpd           
+udp        0      0 :::49240                    :::*                                    2584/blab         
+raw        0   1504 0.0.0.0:132                 0.0.0.0:*                   7           2971/sctpd          
+raw        0      0 0.0.0.0:132                 0.0.0.0:*                   7           2971/sctpd          
+raw        0      0 :::132                      :::*                        7           2971/sctpd          
+Active UNIX domain sockets (servers and established)
+Proto RefCnt Flags       Type       State         I-Node PID/Program name    Path
+unix  2      [ ACC ]     STREAM     LISTENING     14143  3039/tata           /tmp/.socket_34134
+unix  2      [ ACC ]     STREAM     LISTENING     39439  3334/cu39u_u        /tmp/mysocket
+unix  2      [ ACC ]     STREAM     LISTENING     1121   2244/syslog-ng      /var/syslog-ng.ctl
+unix  2      [ ]         DGRAM                    9534   1596/udevd          @/org/kernel/udev/udevd
+unix  3      [ ]         STREAM     CONNECTED     349392438 2244/syslog-ng   /dev/log
+unix  3      [ ]         STREAM     CONNECTED     95984888 13853/0             
+unix  3      [ ]         STREAM     CONNECTED     4893   2244/syslog-ng      /dev/log
+unix  3      [ ]         STREAM     CONNECTED     1211   2253/xinetd         
+unix  3      [ ]         DGRAM                    9895   1596/udevd          
+unix  3      [ ]         DGRAM                    9322   1596/udevd          

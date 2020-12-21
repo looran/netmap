@@ -66,16 +66,16 @@ class Iproute2_parse(object):
             if len(line) <= 1:
                 continue
             cls._debug("parse: %s" % line.strip())
-            m = re.match(r"^(?P<netid>[a-z0-9-_]+)[ \t]+(?P<state>[A-Z0-9-_]+)[ \t]+(?P<recvq>[0-9]+)[ \t]+(?P<sendq>[0-9]+)[ \t]+(?P<local>[^ \t]*[: ]?[^: \t]*)[ \t]+(?P<remote>[^ \t]*[: ]?[^: \t]*)[ \t]+(?P<process>[^ \t]*)", line)
-            cls._debug(m.groups())
+            m = re.match(r"^(?P<proto>[a-z0-9-_]+)[ \t]+(?P<state>[A-Z0-9-_]+)[ \t]+(?P<recvq>[0-9]+)[ \t]+(?P<sendq>[0-9]+)[ \t]+(?P<local>[^ \t]*[: ]?[^: \t]*)[ \t]+(?P<remote>[^ \t]*[: ]?[^: \t]*)[ \t]+(?P<process>[^ \t]*)", line)
             if m:
+                cls._debug(m.groups())
                 s = m.groupdict()
                 s['local'] = s['local'].strip()
                 s['remote'] = s['remote'].strip()
-                if s['netid'] in ['nl']:
+                if s['proto'] in ['nl']:
                     s['local'] = s['local'].rsplit(':', 1)
                     s['remote'] = s['remote'].rsplit(':', 1)
-                elif s['netid'] in ['tcp', 'udp', 'sctp']:
+                elif s['proto'] in ['tcp', 'udp', 'sctp']:
                     s['local_ip'], s['local_port'] = s['local'].rsplit(':', 1)
                     s['remote_ip'], s['remote_port'] = s['remote'].rsplit(':', 1)
                     s['local_ip'] = s['local_ip'].replace('[', '').replace(']', '').replace('::ffff:','')
@@ -86,7 +86,7 @@ class Iproute2_parse(object):
                         s['local_port'] = int(s['local_port'])
                     if s['remote_port'].isdigit():
                         s['remote_port'] = int(s['remote_port'])
-                elif s['netid'] in ['u_str', 'u_seq']:
+                elif s['proto'] in ['u_str', 'u_seq']:
                     s['local'] = s['local'].rsplit(' ', 1)
                     s['remote'] = s['remote'].rsplit(' ', 1)
                 m = re.match(r'^users:\(\(\"(?P<process_name>[^\"]+)\",pid=(?P<pid>[0-9]+),fd=(?P<fd>[0-9]+)\)\)', s['process'])
