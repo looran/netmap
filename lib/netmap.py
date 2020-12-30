@@ -450,7 +450,9 @@ class Netmap(object):
     @contextlib.contextmanager
     def _processing_context(self):
         if self.MULTIPROCESSING_ENABLED:
-            yield multiprocessing.Pool()
+            pool = multiprocessing.Pool()
+            yield pool
+            pool.terminate()
         else:
             yield None
 
