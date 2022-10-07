@@ -16,7 +16,7 @@ from k8s_parse import K8s_parse
 from pcap_parse import Pcap_parse
 from anonymize import Anonymize
 
-PROGRAM_VERSION = '0.1'
+PROGRAM_VERSION = '20221007'
 PROGRAM_HEADER = 'netmap v%s' % PROGRAM_VERSION
 
 class Node(object):
