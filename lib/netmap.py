@@ -398,22 +398,22 @@ class Netmap(object):
 
     def process(self):
         FILES_ORDER = [
-            # fcat   ftype                       fargs  parse_func                      multicore   process_func
-            ("cmd",  "ip-address-show",          None,  Iproute2_parse.ip_address_show, False,      self._process_cmd_ip_address_show),
-            ("cmd",  "hostname",                 None,  System_commands.generic_strip,  False,      self._process_cmd_hostname),
-            ("cmd",  "ps-auxww",                 None,  System_commands.generic,        False,      self._process_cmd_ps),
-            ("cmd",  "ps-ef",                    None,  System_commands.generic,        False,      self._process_cmd_ps),
-            ("cmd",  "cat_etc_hosts",            None,  System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
-            ("cmd",  "netmap_k8s_services_list", None,  K8s_parse.netmap_service_list,  False,      self._process_cmd_netmap_k8s_services_list),
-            ("cmd",  "ss-anp",                   None,  Iproute2_parse.ss,              True,       self._process_cmd_ss_netstat),
-            ("cmd",  "netstat-anp",              None,  Netstat_parse.netstat,          True,       self._process_cmd_ss_netstat),
-            ("pcap", "*", "(?P<iface>[a-zA-Z0-9-_\.]*)",  Pcap_parse.parse,             True,       self._process_pcap),
+            # fcat   ftype                       fargs                                                              parse_func                      multicore   process_func
+            ("cmd",  "ip-address-show",          "(_netns-(?P<netns>[-a-zA-Z0-9_]*))?",                             Iproute2_parse.ip_address_show, False,      self._process_cmd_ip_address_show),
+            ("cmd",  "hostname",                 "",                                                                System_commands.generic_strip,  False,      self._process_cmd_hostname),
+            ("cmd",  "ps-auxww",                 "",                                                                System_commands.generic,        False,      self._process_cmd_ps),
+            ("cmd",  "ps-ef",                    "",                                                                System_commands.generic,        False,      self._process_cmd_ps),
+            ("cmd",  "cat_etc_hosts",            "",                                                                System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
+            ("cmd",  "netmap_k8s_services_list", "",                                                                K8s_parse.netmap_service_list,  False,      self._process_cmd_netmap_k8s_services_list),
+            ("cmd",  "ss-anp",                   "(_netns-(?P<netns>[-a-zA-Z0-9_]*))?",                             Iproute2_parse.ss,              True,       self._process_cmd_ss_netstat),
+            ("cmd",  "netstat-anp",              "(_netns-(?P<netns>[-a-zA-Z0-9_]*))?",                             Netstat_parse.netstat,          True,       self._process_cmd_ss_netstat),
+            ("pcap", "",                         "(?P<iface>[a-zA-Z0-9-_\.]*)(_netns-(?P<netns>[-a-zA-Z0-9_]*))?",  Pcap_parse.parse,               True,       self._process_pcap),
         ]
         with self._processing_context() as pool:
             for fcat, ftype, fargs, parse_func, multicore, process_func in FILES_ORDER:
                 process_queue = list()
-                for fpath in self.network_dir.glob('host_*_%s_%s.*' % (fcat, ftype)):
-                    fmatch = re.match(r"host_(?P<ip>[0-9.]*)_%s_%s\..*" % (fcat, ftype if fargs is None else fargs), fpath.name)
+                for fpath in self.network_dir.glob('host_*_%s_%s*' % (fcat, ftype)):
+                    fmatch = re.match(r"host_(?P<ip>[-_a-zA-Z0-9.]*)_%s_%s%s\..*" % (fcat, ftype, fargs), fpath.name)
                     if not fmatch:
                         warning("ignored file because naming is not recognised : %s" % fpath)
                         continue
@@ -468,6 +468,8 @@ class Netmap(object):
     def _process_cmd_ip_address_show(self, fpath, fpath_matches, node_ip, node_iface, node, ifaces):
         node.found_in.add(fpath.name)
         for iface in ifaces.values():
+            if fpath_matches['netns']:
+                iface['name'] = "%s:%s" % (fpath_matches['netns'], iface['name'])
             for ip in iface['ip']:
                 othernode_ip = self.network.find_node_ip(ip)
                 if othernode_ip and othernode_ip.node_iface.node != node and not othernode_ip.node_iface.name:
@@ -529,6 +531,8 @@ class Netmap(object):
                     else:
                         if 'local_iface' in sst:
                             # if iface is explicitely specified, deamon might be binded on different ip
+                            if fpath_matches['netns']:
+                                sst['local_iface'] = "%s:%s" % (fpath_matches['netns'], sst['local_iface'])
                             nip = node.add_or_update_ip(sst['local_ip'], sst['local_iface'])
                         else:
                             # socket binds on ip that is not attributed to interface, create it anyway
@@ -555,9 +559,13 @@ class Netmap(object):
 
     def _process_pcap(self, fpath, fpath_matches, node_ip, node_iface, node, streams):
         node.found_in.add(fpath.name)
+        if fpath_matches['netns']:
+            iface_name = "%s:%s" % (fpath_matches['netns'], fpath_matches['iface'])
+        else:
+            iface_name = fpath_matches['iface']
         for niface in node.node_ifaces.values():
             # add pcap reference to each node_ip of the captured interface
-            if niface.name == fpath_matches['iface']:
+            if niface.name == iface_name:
                 for nip in niface.node_ips.values():
                     nip.found_in.add(fpath.name)
         for pcapstream, stats in streams.items():
