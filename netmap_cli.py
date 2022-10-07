@@ -18,7 +18,7 @@ import netmap
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='netmap %s\ngenerate text output analysis about a network' % VERSION, epilog=EPILOG, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-a', dest='anonymize_hex_salt', help='Anonymize IP addresses, MAC and names. hexlified 16 bytes salt must be provided = 32 hex characters max.')
-    parser.add_argument('-d', dest='debug', action='count', default=0, help='Show debug messages. Can be specified up to 2 times.')
+    parser.add_argument('-d', dest='debug', action='count', default=0, help='Show debug messages. Disables multithreading when specified twice.')
     parser.add_argument('-g', dest='graph_output', action='store_true', help='print a network graph in json format instead of a text summary')
     parser.add_argument('input_data_directory', help='input directory of system commands output and pcap traces')
     parser.add_argument('network_name', nargs='?', help='name of the network to analyse from input_data_directory. if not specified, list networks avaible for analysis.')
