@@ -419,7 +419,7 @@ class Netmap(object):
                         continue
                     if fpath.stat().st_mtime > self.stats["last_modification"]:
                         self.stats["last_modification"] = fpath.stat().st_mtime
-                    debug("parsing input cmd file %s : %s" % (fpath, fmatch.groups()))
+                    debug("parsing input file %s : %s" % (fpath, fmatch.groups()))
                     process_queue.append([fpath, parse_func, fmatch.groupdict()])
                 if pool and multicore is True:
                     map_func = pool.map
