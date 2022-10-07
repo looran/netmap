@@ -383,6 +383,7 @@ class Netmap(object):
             self.anonymizer = None
         logging.basicConfig(level=logging.INFO if debugval == 0 else logging.DEBUG, format="%(levelname)s %(message)s")
         if debugval >= 2:
+            self.MULTIPROCESSING_ENABLED = False
             Iproute2_parse.DEBUG = True
             Netstat_parse.DEBUG = True
         debug("network data directory: %s" % self.network_dir)
