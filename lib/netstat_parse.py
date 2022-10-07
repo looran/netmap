@@ -11,6 +11,7 @@ class Netstat_parse(object):
         text = fpath.read_text()
         streams = list()
 
+        cls._debug("netstat %s" % fpath)
         for line in text.split('\n')[1:]:
             if len(line) <= 1:
                 continue
