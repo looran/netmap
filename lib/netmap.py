@@ -427,6 +427,7 @@ class Netmap(object):
                     map_func = map
                 for fpath, _, fpath_matches, parse_res in map_func(self._pool_parse, process_queue):
                     node_ip = self.network.find_or_create_node_ip(fpath_matches['ip'])
+                    node_ip.node_iface.node.names.add(fpath_matches['ip'])
                     if process_func(fpath, fpath_matches, node_ip, node_ip.node_iface, node_ip.node_iface.node, parse_res):
                         self.stats["processed_input_file"] += 1
         self.stats["nodes_count"] = len(self.network.nodes)
