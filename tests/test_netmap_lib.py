@@ -16,7 +16,7 @@ EXPECTED_RESULTS = {
     'network1': {
         'summary': """== Network 'network1' summary ==
 Nodes:
-Node cha
+Node 192.168.0.3 cha
    lo 00:00:00:00:00:00
       tcp/22 sshd
       127.0.0.1
@@ -41,17 +41,17 @@ Streams:
    192.168.0.3:57400 41.58.204.138:443/tcp 
 """,
         'map': ([
-            {'category': 'node', 'isGroup': 'true', 'key': 'cha', 'text': 'cha', 'found_in': 'host_192.168.0.3_cmd_cat_etc_hosts.txt\n' 'host_192.168.0.3_cmd_ip-address-show.txt\n' 'host_192.168.0.3_cmd_ss-anp.txt', },
-            {'category': 'node_ip', 'group': 'cha', 'key': 'cha_lo_127.0.0.1', 'text': '127.0.0.1', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {'category': 'node_ip', 'group': 'cha', 'key': 'cha_lo_::1', 'text': '::1', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {'category': 'node_ip', 'group': 'cha', 'key': 'cha_vboxnet0_192.168.56.1', 'text': '192.168.56.1', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {'category': 'node_ip', 'group': 'cha', 'key': 'cha_vboxnet0_fe80::800:27ff:fe00:0', 'text': 'fe80::800:27ff:fe00:0', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {'category': 'node_ip', 'group': 'cha', 'key': 'cha_enp0s31f6_192.168.0.3', 'text': '192.168.0.3', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {'category': 'node', 'isGroup': 'true', 'key': '192.168.0.3_cha', 'text': '192.168.0.3\ncha', 'found_in': 'host_192.168.0.3_cmd_cat_etc_hosts.txt\n' 'host_192.168.0.3_cmd_ip-address-show.txt\n' 'host_192.168.0.3_cmd_ss-anp.txt', },
+            {'category': 'node_ip', 'group': '192.168.0.3_cha', 'key': '192.168.0.3_cha_lo_127.0.0.1', 'text': '127.0.0.1', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {'category': 'node_ip', 'group': '192.168.0.3_cha', 'key': '192.168.0.3_cha_lo_::1', 'text': '::1', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {'category': 'node_ip', 'group': '192.168.0.3_cha', 'key': '192.168.0.3_cha_vboxnet0_192.168.56.1', 'text': '192.168.56.1', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {'category': 'node_ip', 'group': '192.168.0.3_cha', 'key': '192.168.0.3_cha_vboxnet0_fe80::800:27ff:fe00:0', 'text': 'fe80::800:27ff:fe00:0', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {'category': 'node_ip', 'group': '192.168.0.3_cha', 'key': '192.168.0.3_cha_enp0s31f6_192.168.0.3', 'text': '192.168.0.3', 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
             {'category': 'node_ip', 'key': '_None_61.200.0.167', 'text': '61.200.0.167', 'found_in': '',},
             {'category': 'node_ip', 'key': '_None_41.58.204.138', 'text': '41.58.204.138', 'found_in': '',},
         ], [
-            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '47670:443/tcp firefox', 'to': '_None_61.200.0.167', 'traffic_percent': 1},
-            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': 'cha_enp0s31f6_192.168.0.3', 'text': '57400:443/tcp ', 'to': '_None_41.58.204.138', 'traffic_percent': 1}
+            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': '192.168.0.3_cha_enp0s31f6_192.168.0.3', 'text': '47670:443/tcp firefox', 'to': '_None_61.200.0.167', 'traffic_percent': 1},
+            {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': '192.168.0.3_cha_enp0s31f6_192.168.0.3', 'text': '57400:443/tcp ', 'to': '_None_41.58.204.138', 'traffic_percent': 1}
         ]),
         'statistics': {
             'data_gathering_logs': '',
@@ -66,7 +66,7 @@ Streams:
     'k8s_example': {
         'summary': """== Network 'k8s_example' summary ==
 Nodes:
-Node login login-pod-1
+Node 192.168.0.3 login login-pod-1
    lo 00:00:00:00:00:00
       127.0.0.1
       ::1
@@ -113,14 +113,14 @@ Node backend
 Streams:
 """,
         'map': ([
-            {"category": "node", "key": "login_login-pod-1", "isGroup": "true", "text": "login\nlogin-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt\n' 'host_192.168.0.3_cmd_netmap_k8s_services_list.txt'},
-            {"category": "node_ip", "key": "login_login-pod-1_lo_127.0.0.1", "text": "127.0.0.1", "group": "login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt', },
-            {"category": "node_ip", "key": "login_login-pod-1_lo_::1", "text": "::1", "group": "login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {"category": "node_ip", "key": "login_login-pod-1_vboxnet0_192.168.56.1", "text": "192.168.56.1", "group": "login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {"category": "node_ip", "key": "login_login-pod-1_vboxnet0_fe80::800:27ff:fe00:0", "text": "fe80::800:27ff:fe00:0", "group": "login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {"category": "node_ip", "key": "login_login-pod-1_enp0s31f6_192.168.0.3", "text": "192.168.0.3", "group": "login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {"category": "node_ip", "key": "login_login-pod-1_eth0_10.0.0.1", "text": "10.0.0.1", "group": "login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
-            {"category": "node_ip", "key": "login_login-pod-1_login_172.16.0.1", "text": "172.16.0.1", "group": "login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_netmap_k8s_services_list.txt',},
+            {"category": "node", "key": "192.168.0.3_login_login-pod-1", "isGroup": "true", "text": "192.168.0.3\nlogin\nlogin-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt\n' 'host_192.168.0.3_cmd_netmap_k8s_services_list.txt'},
+            {"category": "node_ip", "key": "192.168.0.3_login_login-pod-1_lo_127.0.0.1", "text": "127.0.0.1", "group": "192.168.0.3_login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt', },
+            {"category": "node_ip", "key": "192.168.0.3_login_login-pod-1_lo_::1", "text": "::1", "group": "192.168.0.3_login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {"category": "node_ip", "key": "192.168.0.3_login_login-pod-1_vboxnet0_192.168.56.1", "text": "192.168.56.1", "group": "192.168.0.3_login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {"category": "node_ip", "key": "192.168.0.3_login_login-pod-1_vboxnet0_fe80::800:27ff:fe00:0", "text": "fe80::800:27ff:fe00:0", "group": "192.168.0.3_login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {"category": "node_ip", "key": "192.168.0.3_login_login-pod-1_enp0s31f6_192.168.0.3", "text": "192.168.0.3", "group": "192.168.0.3_login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {"category": "node_ip", "key": "192.168.0.3_login_login-pod-1_eth0_10.0.0.1", "text": "10.0.0.1", "group": "192.168.0.3_login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_ip-address-show.txt',},
+            {"category": "node_ip", "key": "192.168.0.3_login_login-pod-1_login_172.16.0.1", "text": "172.16.0.1", "group": "192.168.0.3_login_login-pod-1", 'found_in': 'host_192.168.0.3_cmd_netmap_k8s_services_list.txt',},
             {"category": "node", "key": "login_login-pod-2", "isGroup": "true", "text": "login\nlogin-pod-2", 'found_in': 'host_192.168.0.3_cmd_netmap_k8s_services_list.txt',},
             {"category": "node_ip", "key": "login_login-pod-2_None_10.0.0.2", "text": "10.0.0.2", "group": "login_login-pod-2", 'found_in': '',},
             {"category": "node_ip", "key": "login_login-pod-2_login_172.16.0.1", "text": "172.16.0.1", "group": "login_login-pod-2", 'found_in': 'host_192.168.0.3_cmd_netmap_k8s_services_list.txt',
