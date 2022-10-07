@@ -445,10 +445,16 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
             document.getElementById("frozen_targetinfo_list").appendChild(name);
             var description = document.getElementById("targetinfo_description").cloneNode(true);
             document.getElementById("frozen_targetinfo_list").appendChild(description);
+            color_targetinfo("yellow");
 			message_show("target info frozen<br/>name copied to clipboard", 3)
         } else {
+            color_targetinfo("white");
 			message_show("target info unfrozen", 3)
 		}
+    }
+    function color_targetinfo(color) {
+        e = document.getElementById("targetinfo");
+        e.style.backgroundColor = color;
     }
     </script>
 
