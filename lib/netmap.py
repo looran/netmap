@@ -536,9 +536,13 @@ class Netmap(object):
                         iface = nip.node_iface
                     if (sst['proto'], sst['local_port']) not in iface.services:
                         iface.add_or_update_service(sst['proto'], sst['local_port'], sst['process_name'] if 'process_name' in sst else "")
-                    local_node_ip = self.network.find_or_create_node_ip(sst['local_ip'])
-                    remote_node_ip = self.network.find_or_create_node_ip(sst['remote_ip'])
                 elif sst['state'] in ['ESTAB', 'ESTABLISHED', 'TIME-WAIT', 'TIME_WAIT', 'CLOSE-WAIT', 'CLOSE_WAIT', 'FIN-WAIT2']:
+                    local_node_ip = node.find_node_ip(sst['local_ip'])
+                    if not local_node_ip:
+                        local_node_ip = self.network.find_or_create_node_ip(sst['local_ip'])
+                    remote_node_ip = node.find_node_ip(sst['remote_ip'])
+                    if not remote_node_ip:
+                        remote_node_ip = self.network.find_or_create_node_ip(sst['remote_ip'])
                     stream = self.network.find_or_create_stream(local_node_ip, sst['local_port'], remote_node_ip, sst['remote_port'], sst['proto'])
                     if stream not in local_node_ip.streams:
                         local_node_ip.streams.append(stream)
