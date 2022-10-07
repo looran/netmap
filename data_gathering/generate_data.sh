@@ -36,7 +36,7 @@ while read -r netns; do
             || trace $pre netstat -anp > $out_dir/host_${host_ip}_cmd_netstat-anp${suffix}.txt
     trace ip neigh show > $out_dir/host_${host_ip}_cmd_ip-neighbour-show${suffix}.txt
     if [ $do_tcpdump -eq 1 ]; then
-        $pre ip -o a |awk '{print $2}' |sort |uniq \
+        $pre ip address show |grep UP |sed -n 's/^[0-9]*: \([-_a-zA-Z0-9\.]*\).*/\1/p' |sort |uniq \
             |$pre xargs -P0 -t -I IFACE timeout -s 2 $TCPDUMP_TIME tcpdump -ni IFACE -c $TCPDUMP_PACKETS -w $out_dir/host_${host_ip}_pcap_IFACE${suffix}.pcap || true &
     fi
 done < $out_dir/host_${host_ip}_cmd_ip_netns.txt
