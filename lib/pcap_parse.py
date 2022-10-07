@@ -23,6 +23,8 @@ def find_stream(streams, src, srcport, dst, dstport, proto):
     return oneway
 
 class Pcap_parse(object):
+    DEBUG = False
+
     @classmethod
     def parse(cls, path):
         debug("Pcap_parse %s" % path)
@@ -63,10 +65,16 @@ class Pcap_parse(object):
                 elif transname in ["icmp"]:
                     sport = dport = None
                 else:
+                    if cls.DEBUG:
+                        debug("Pcap_parse debug: unknown proto '%s'" % transname)
                     continue
                 key = find_stream(streams, src, sport, dst, dport, transname)
                 streams[key]['packets'] += 1
                 streams[key]['bytes'] += int(ip.len)
                 if streams[key]['first_packet'] is None:
                     streams[key]['first_packet'] = n
+
+        if cls.DEBUG:
+            debug("Pcap_parse debug: done reading %d packets\nstreams:\n%s" % (n, pprint.pformat(streams)))
+
         return streams

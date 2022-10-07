@@ -386,6 +386,7 @@ class Netmap(object):
             self.MULTIPROCESSING_ENABLED = False
             Iproute2_parse.DEBUG = True
             Netstat_parse.DEBUG = True
+            Pcap_parse.DEBUG = True
         debug("network data directory: %s" % self.network_dir)
         if not self.network_dir.exists():
             raise Exception("network data directory does not exist : %s" % self.network_dir)
