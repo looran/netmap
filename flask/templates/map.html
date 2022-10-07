@@ -635,7 +635,11 @@ At this point using web-browser zoom is the best way to ajust the UI to custom s
                 _isLinkLabel: true, // label object marker for LinkLabelOnPathDraggingTool
                 segmentIndex: NaN,
                 segmentFraction: .5,
-                segmentOrientation: go.Link.OrientUpright
+                segmentOrientation: go.Link.OrientUpright,
+                /* prevent a too long stream name */
+                maxSize: new go.Size(500, 100),
+                maxLines: 1,
+                overflow: go.TextBlock.OverflowEllipsis,
             },
             new go.Binding("background", "color"),
             new go.Binding("font", "font"),
