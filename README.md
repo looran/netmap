@@ -16,29 +16,29 @@ Features:
 
 **1. Create a directory for the network data**
 ``` bash
-$ mkdir -p netmap_data/mynetwork/
+$ mkdir -p netmap_data/network1/
 ```
 
 **2. Gather commands output and pcap traces from the nodes in your network**
 
 2.a. On the local node, here 192.168.0.1, [generate_data.sh](data_gathering/generate_data.sh) will execute various system commands (`ip`, `ss`, ...) to get network configuration and store output in text files:
 ``` bash
-$ ./data_gathering/generate_data.sh netmap_data/mynetwork/ 192.168.0.1
+$ ./data_gathering/generate_data.sh netmap_data/network1/ 192.168.0.1
 ```
 
 On Kubernetes cluster, you can use [generate_data_k8s.sh](data_gathering/generate_data_k8s.sh) which gathers informations from all your pods from the master node, to make the pods appear in the network map.
 
 2.b. From remote notes, [remote_generate_data.sh](data_gathering/remote_generate_data.sh) will connect via SSH to the nodes, run the above script and fetch results:
 ``` bash
-./data_gathering/remote_generate_data.sh netmap_data/mynetwork/ 192.168.0.250 10.10.10.1
+./data_gathering/remote_generate_data.sh netmap_data/network1/ 192.168.0.250 10.10.10.1
 ```
 
-2.c. You can also gather gata from your own scripts and store the result to `netmap_data/mynetwork/` following [Data input format](#data-input-format) naming.
+2.c. You can also gather gata from your own scripts and store the result to `netmap_data/network1/` following [Data input format](#data-input-format) naming.
 
 **3. Run the command-line tool to have an overview of the gathered data**
 
 ``` bash
-$ ./netmap_cli.py netmap_data/ mynetwork`
+$ ./netmap_cli.py netmap_data/ network1
 ```
 
 **4. Run the webserver and connect to http://127.0.0.1:5000/ to view the network map**
@@ -51,7 +51,7 @@ For demo purposes you can run `./webserver.sh ./demo_data/` and click on `networ
 
 ### Source code layout
 
-``` bash
+```
 netmap_cli.py [options] <input_data_directory> [<network_name>]
 	generate text output analysis about the network
 webserver.sh <input_data_directory>
@@ -72,7 +72,7 @@ test/
 ### Compatibility and dependencies
 
 * On monitored machines
-	* Linux with `iproute2` installed, optionally `tcpdump`
+	* Linux with `iproute2` installed, optionally `tcpdump` and `netstat`
 	* Supports Kubernetes pods, executes commands from the master in all pods, see [generate_data_k8s.sh](data_gathering/generate_data_k8s.sh)
 * On visualisation machine (where webserver/netmap_cli runs)
 	* `python3` and `python3-flask`
@@ -85,29 +85,29 @@ test/
 netmap takes as input a directory containing the network data to analyse, each network in it's own directory.
 
 A network directory can contain 2 types of files:
-* system commands output such as `ip address show`, `ss -anp` or `cat /etc/hosts`
-* network captures made by `tcpdump` for example
+* system commands output such as `ip address show`, `ss -anp`, `cat /etc/hosts`
+* network captures in `pcap` format from `tcpdump` or alike
 
 #### Files naming interpreted by netmap
 
-``` bash
-network1/
-network1/host_<host_ip>_cmd_ip-address-show.txt
-network1/host_<host_ip>_cmd_ip-neighbour-show.txt
-network1/host_<host_ip>_cmd_ss-anp.txt
-network1/host_<host_ip>_cmd_etc_hosts.txt
-network1/host_<host_ip>_pcap_<interface>.pcap
+```
+netmap_data/network1/
+netmap_data/network1/host_<host_ip>_cmd_etc_hosts.txt
+netmap_data/network1/host_<host_ip>_cmd_ip-address-show.txt
+netmap_data/network1/host_<host_ip>_cmd_ss-anp.txt
+netmap_data/network1/host_<host_ip>_cmd_netstat-anp.txt
+netmap_data/network1/host_<host_ip>_cmd_netmap_k8s_services_list.txt
+netmap_data/network1/host_<host_ip>_pcap_<interface>.pcap
 ```
 
 #### Example manual data gathering
 
 On host 192.168.0.1:
 
-``` bash
-$ cd netmap_data/mynetwork/
+```
+$ cd netmap_data/network1/
 $ ip address show > host_192.168.0.1_cmd_ip-address-show.txt
 $ sudo ss -anp > host_192.168.0.1_cmd_ss-anp.txt
-$ ip neighbour show > host_192.168.0.1_cmd_ip-neighbour-show.txt
 $ cat /etc/hosts > host_192.168.0.1_cmd_cat_etc_hosts.txt
 $ sudo tcpdump -ni enp0s31f6 -c 100 -w host_192.168.0.1_pcap_enp0s31f6.pcap
 ```
@@ -124,7 +124,7 @@ See help at the bottom of the network map web page.
 
 ### Unit tests
 
-Parsing some `ip` command output is part of unittests.
+Unit tests include multiple `iproute2` command output parsing as well as pcap and network processing tests.
 
 ``` bash
 make tests
@@ -140,6 +140,8 @@ $ ./netmap_cli.py -d demo_data/ network1
 ``` bash
 $ ./webserver.sh -d ./demo_data/
 ```
+
+Passing `-d` twice increases verbosity.
 
 ### TODO
 
