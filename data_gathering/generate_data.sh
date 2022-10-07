@@ -3,11 +3,11 @@
 trace() { echo "# $*" >&2; "$@"; }
 
 PATH="$PATH:/bin:/sbin:/usr/bin:/usr/sbin"
+TCPDUMP_TIME=${TCPDUMP_TIME:-30}
+TCPDUMP_PACKETS=${TCPDUMP_PACKETS:-30000}
 set -e
 
-[ $# -lt 2 ] && echo "usage: $0 [-v] [-T] <output_directory> <this_host_ip>" && exit 1
-redir_stderr=/dev/null
-[ "$1" = "-v" ] && redir_stderr=/dev/stderr && shift
+[ $# -lt 2 ] && echo "usage: $0 [-T] <output_directory> <this_host_ip>" && exit 1
 do_tcpdump=1
 [ "$1" = "-T" ] && do_tcpdump=0 && shift
 out_dir="$1"
@@ -16,21 +16,31 @@ now=$(date +%Y%m%d_%H%M%S)
 echo "$now $host_ip $*" >> "$out_dir/generate_data_${now}_${host_ip}.log"
 
 echo "[+] running commands on host $host_ip" >&2
+
 trace hostname > $out_dir/host_${host_ip}_cmd_hostname.txt
-trace ip address show > $out_dir/host_${host_ip}_cmd_ip-address-show.txt
-trace which ss >/dev/null \
-        && trace sudo ss -anp > $out_dir/host_${host_ip}_cmd_ss-anp.txt \
-        || trace sudo netstat -anp > $out_dir/host_${host_ip}_cmd_netstat-anp.txt
-trace ip neigh show > $out_dir/host_${host_ip}_cmd_ip-neighbour-show.txt
 trace ps -auxww > $out_dir/host_${host_ip}_cmd_ps-auxww.txt \
         || trace ps -ef > $out_dir/host_${host_ip}_cmd_ps-ef.txt
 trace cat /etc/hosts > $out_dir/host_${host_ip}_cmd_cat_etc_hosts.txt
+echo > $out_dir/host_${host_ip}_cmd_ip_netns.txt
+trace ip netns >> $out_dir/host_${host_ip}_cmd_ip_netns.txt
 
-if [ $do_tcpdump -eq 1 ]; then
-    echo "[+] running network capture on host $host_ip" >&2
-    trace which tcpdump
-    ip -o a |awk '{print $2}' |sort |uniq \
-        |sudo xargs -P0 -t -I IFACE timeout -s 2 30 tcpdump -ni IFACE -c 30000 -w $out_dir/host_${host_ip}_pcap_IFACE.pcap ||true
-fi
+while read -r netns; do
+    suffix=""
+    netns="$(echo $netns |awk '{print $1}')"
+    [ -n "$netns" ] \
+        && echo "namespace $netns" && suffix="_netns-$netns" && pre="sudo ip netns exec $netns " \
+        || pre="sudo nsenter -n -t1 "
+    trace $pre ip address show > $out_dir/host_${host_ip}_cmd_ip-address-show${suffix}.txt
+    trace which ss >/dev/null \
+            && trace $pre ss -anp > $out_dir/host_${host_ip}_cmd_ss-anp${suffix}.txt \
+            || trace $pre netstat -anp > $out_dir/host_${host_ip}_cmd_netstat-anp${suffix}.txt
+    trace ip neigh show > $out_dir/host_${host_ip}_cmd_ip-neighbour-show${suffix}.txt
+    if [ $do_tcpdump -eq 1 ]; then
+        $pre ip -o a |awk '{print $2}' |sort |uniq \
+            |$pre xargs -P0 -t -I IFACE timeout -s 2 $TCPDUMP_TIME tcpdump -ni IFACE -c $TCPDUMP_PACKETS -w $out_dir/host_${host_ip}_pcap_IFACE${suffix}.pcap || true &
+    fi
+done < $out_dir/host_${host_ip}_cmd_ip_netns.txt
+
+[ $do_tcpdump -eq 1 ] && echo waiting for tcpdumps && trace wait || true
 
 echo "[*] DONE, host $host_ip results stored in $out_dir" >&2
