@@ -1,6 +1,7 @@
 import re
 import pprint
 import socket
+from logging import info, debug, warning
 
 class Netstat_parse(object):
     DEBUG = False
@@ -52,4 +53,4 @@ class Netstat_parse(object):
     @classmethod
     def _debug(cls, msg):
         if cls.DEBUG:
-            print("iproute2_parse debug: %s" % str(msg))
+            debug("iproute2_parse debug: %s" % str(msg))

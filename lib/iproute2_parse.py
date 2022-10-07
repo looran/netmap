@@ -1,5 +1,6 @@
 import re
 import pprint
+from logging import info, debug, warning
 
 class Iproute2_parse(object):
     DEBUG = False
@@ -103,4 +104,4 @@ class Iproute2_parse(object):
     @classmethod
     def _debug(cls, msg):
         if cls.DEBUG:
-            print("iproute2_parse debug: %s" % str(msg))
+            debug("iproute2_parse debug: %s" % str(msg))
