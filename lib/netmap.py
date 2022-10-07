@@ -461,7 +461,7 @@ class Netmap(object):
     def _pool_parse(self, args):
         """ used by process() to handle parsing
             in case of multiprocessing task, it will be executed in each subprocess of the multiprocessing.Pool
-            in case of multiprocessing disabled in the task, it well be executed in the main process """
+            in case of multiprocessing disabled in the task, it will be executed in the main process """
         parse_res = args[1](args[0]) # parse(fpath)
         return args + [ parse_res ]
 
