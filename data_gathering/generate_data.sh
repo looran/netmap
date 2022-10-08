@@ -12,8 +12,8 @@ do_tcpdump=1
 [ "$1" = "-T" ] && do_tcpdump=0 && shift
 out_dir="$1"
 host_ip=$2
-now=$(date +%Y%m%d_%H%M%S)
-echo "$now $host_ip $*" >> "$out_dir/generate_data_${now}_${host_ip}.log"
+now=$(date -u +%Y%m%d_%H%M%S_%Z)
+echo "$now $host_ip tcpdump=$do_tcpdump TCPDUMP_TIME=$TCPDUMP_TIME TCPDUMP_PACKETS=$TCPDUMP_PACKETS" >> "$out_dir/generate_data_${now}_${host_ip}.log"
 
 echo "[+] running commands on host $host_ip" >&2
 

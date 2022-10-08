@@ -22,8 +22,8 @@ redir_stderr=/dev/null
 [ "$1" == "-T" ] && do_tcpdump=0 && shift
 out_dir="$1"
 host_ip="$2"
-now=$(date +%Y%m%d_%H%M%S)
-echo "$now $host_ip $*" >> "$out_dir/generate_data_k8s_${now}_${host_ip}.log"
+now=$(date -u +%Y%m%d_%H%M%S_%Z)
+echo "$now $host_ip k8s tcpdump=$do_tcpdump SSH_NODES_CMD=$SSH_NODES_CMD" >> "$out_dir/generate_data_k8s_${now}_${host_ip}.log"
 SSH_NODES_CMD=${SSH_NODES_CMD:-"ssh -oControlMaster=auto -oControlPath=/tmp/netmap/ssh-master-%r@%n:%p -oControlPersist=5 -q"}
 echo "SSH_NODES_CMD=$SSH_NODES_CMD" >&2
 
