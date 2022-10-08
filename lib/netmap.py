@@ -402,8 +402,15 @@ class Netmap(object):
             # fcat   ftype                       fargs                                                              parse_func                      multicore   process_func
             ("cmd",  "ip-address-show",          "(_netns-(?P<netns>[-a-zA-Z0-9_]*))?",                             Iproute2_parse.ip_address_show, False,      self._process_cmd_ip_address_show),
             ("cmd",  "hostname",                 "",                                                                System_commands.generic_strip,  False,      self._process_cmd_hostname),
-            ("cmd",  "ps-auxww",                 "",                                                                System_commands.generic,        False,      self._process_cmd_ps),
-            ("cmd",  "ps-ef",                    "",                                                                System_commands.generic,        False,      self._process_cmd_ps),
+            ("cmd",  "ps-auxww",                 "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
+            ("cmd",  "ps-ef",                    "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
+            ("cmd",  "ps-efH",                   "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
+            ("cmd",  "top-bn1",                  "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
+            ("cmd",  "cat_etc_passwd",           "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
+            ("cmd",  "uname-ap",                 "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
+            ("cmd",  "uptime",                   "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
+            ("cmd",  "df-h",                     "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
+            ("cmd",  "mount",                    "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
             ("cmd",  "cat_etc_hosts",            "",                                                                System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
             ("cmd",  "netmap_k8s_services_list", "",                                                                K8s_parse.netmap_service_list,  False,      self._process_cmd_netmap_k8s_services_list),
             ("cmd",  "ss-anp",                   "(_netns-(?P<netns>[-a-zA-Z0-9_]*))?",                             Iproute2_parse.ss,              True,       self._process_cmd_ss_netstat),
@@ -487,7 +494,7 @@ class Netmap(object):
     def _process_cmd_hostname(self, fpath, fpath_matches, node_ip, node_iface, node, hostname):
         node.names.add(hostname)
 
-    def _process_cmd_ps(self, fpath, fpath_matches, node_ip, node_iface, node, ps_output):
+    def _process_dummy_associate(self, fpath, fpath_matches, node_ip, node_iface, node, ps_output):
         node.found_in.add(fpath.name)
 
     def _process_cmd_cat_etc_hosts(self, fpath, fpath_matches, node_ip, node_iface, node, hosts):

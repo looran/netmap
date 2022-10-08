@@ -18,8 +18,15 @@ echo "$now $host_ip tcpdump=$do_tcpdump TCPDUMP_TIME=$TCPDUMP_TIME TCPDUMP_PACKE
 echo "[+] running commands on host $host_ip" >&2
 
 trace hostname > $out_dir/host_${host_ip}_cmd_hostname.txt
+trace uname -ap > $out_dir/host_${host_ip}_cmd_uname-ap.txt
+trace uptime > $out_dir/host_${host_ip}_cmd_uptime.txt
+trace mount > $out_dir/host_${host_ip}_cmd_mount.txt
+trace df -h > $out_dir/host_${host_ip}_cmd_df-h.txt
 trace ps -auxww > $out_dir/host_${host_ip}_cmd_ps-auxww.txt \
         || trace ps -ef > $out_dir/host_${host_ip}_cmd_ps-ef.txt
+trace ps -efH > $out_dir/host_${host_ip}_cmd_ps-efH.txt
+trace top -bn1 > $out_dir/host_${host_ip}_cmd_top-bn1.txt
+trace cat /etc/passwd > $out_dir/host_${host_ip}_cmd_cat_etc_passwd.txt
 trace cat /etc/hosts > $out_dir/host_${host_ip}_cmd_cat_etc_hosts.txt
 echo > $out_dir/host_${host_ip}_cmd_ip_netns.txt
 trace ip netns >> $out_dir/host_${host_ip}_cmd_ip_netns.txt
