@@ -1,6 +1,10 @@
 import os
+import pprint
 import socket
 from logging import info, debug, warning
+
+DLT_EN10MB = 1
+DLT_RAW = 101
 
 try:
     import dpkt
@@ -40,6 +44,7 @@ class Pcap_parse(object):
                     warning("could not open pcap file %s :\npcap error: %s\npcapng error: %s" % (path, e, e2))
                     return {}
             n = 0
+            linktype = cap.datalink()
             while True:
                 n += 1
                 try: ts, pkt = next(cap)
@@ -48,13 +53,22 @@ class Pcap_parse(object):
                 except Exception as e:
                     warning("could not read packet %d, interrupting parse : %s\n    in %s" % (n, e, path))
                     return streams
-                try: eth = dpkt.ethernet.Ethernet(pkt)
-                except Exception as e:
-                    warning("could not open ethernet layer from packet %d %s : %s\n    in %s" % (n, ts, e, path))
+                if linktype == DLT_RAW:
+                    try: ip = dpkt.ip.IP(pkt)
+                    except Exception as e:
+                        warning("could not open IP layer from packet %d %s : %s\n    in %s" % (n, ts, e, path))
+                        continue
+                elif linktype == DLT_EN10MB:
+                    try: eth = dpkt.ethernet.Ethernet(pkt)
+                    except Exception as e:
+                        warning("could not open ethernet layer from packet %d %s : %s\n    in %s" % (n, ts, e, path))
+                        continue
+                    ip = eth.data
+                else:
+                    warning("unknown linktype '%d' in pcap %s" % (linktype, path))
+                    return {}
+                if not isinstance(ip, dpkt.ip.IP):
                     continue
-                if not isinstance(eth.data, dpkt.ip.IP):
-                    continue
-                ip = eth.data
                 src = socket.inet_ntoa(ip.src)
                 dst = socket.inet_ntoa(ip.dst)
                 transname = type(ip.data).__name__.lower()
