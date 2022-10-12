@@ -1,6 +1,7 @@
 import re
 import pprint
 from logging import info, debug, warning
+from collections import Counter
 
 class Iproute2_parse(object):
     DEBUG = False
@@ -90,9 +91,12 @@ class Iproute2_parse(object):
                 elif s['proto'] in ['u_str', 'u_seq']:
                     s['local'] = s['local'].rsplit(' ', 1)
                     s['remote'] = s['remote'].rsplit(' ', 1)
-                m = re.match(r'^users:\(\(\"(?P<process_name>[^\"]+)\",pid=(?P<pid>[0-9]+),fd=(?P<fd>[0-9]+)\)\)', s['process'])
-                if m:
-                    s.update(m.groupdict())
+                users = re.match(r'^users:\((?P<users>.*)\)$', s['process'])
+                if users:
+                    process_names = re.findall(r'\(\"(?P<process_name>[^\"]+)\",pid=(?P<pid>[0-9]+),fd=(?P<fd>[0-9]+)\)', users.groups()[0])
+                    if len(process_names) > 0:
+                        counts = dict(Counter([ i[0] for i in process_names ]))
+                        s["process_name"] = ",".join([ "%s%s" % (k, "[%d]" % v if v > 1 else "") for k, v in counts.items() ])
                 streams.append(s)
             else:
                 print("warning: could not parse line %s" % line)
