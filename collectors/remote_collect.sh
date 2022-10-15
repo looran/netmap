@@ -2,7 +2,7 @@
 
 usageexit() {
     cat <<-_EOF
-usage: $0 [-P] [-v] [-T] <output_directory> <ip|sshalias>[:k8s][:ssh_pre="SSH-CMD-PREFIX"][:tmp_dir="$TMP_DIR"] ...
+usage: $0 [-P] [-v] [-T] <output_directory> <ip|sshalias>[:k8s][:ssh_pre=""][:tmp_dir="$TMP_DIR"] ...
    -p : enable parallel collecting when multiple targets are specified
    -v : passed to collect.sh
    -T : passed to collect.sh
