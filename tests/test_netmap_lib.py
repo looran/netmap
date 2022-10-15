@@ -54,7 +54,7 @@ Streams:
             {'category': 'stream', 'color': 'rgba(200, 200, 200, 0.52)', 'font': '8pt sans-serif', 'found_in': 'host_192.168.0.3_cmd_ss-anp.txt', 'from': '192.168.0.3_cha_enp0s31f6_192.168.0.3', 'text': '57400:443/tcp ', 'to': '_None_41.58.204.138', 'traffic_percent': 1}
         ]),
         'statistics': {
-            'data_gathering_logs': '',
+            'collect_logs': '',
             'nodes_count': 3,
             'processed_input_file': 3,
             'stream_bytes_count_max': 0,
@@ -138,7 +138,7 @@ Streams:
         ],
         []),
         'statistics': {
-            'data_gathering_logs': '',
+            'collect_logs': '',
             'nodes_count': 5,
             'processed_input_file': 2,
             'stream_bytes_count_max': 0,
