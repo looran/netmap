@@ -44,6 +44,10 @@ collect() {
 	fi
 	trace $ssh_pre rsync -e "ssh $SSH_OPTS" -avPz $sshalias:"$tmp_dir/netmap/data/" $output_dir || trace $ssh_pre scp $SSH_OPTS -r $sshalias:"$tmp_dir/netmap/data/*" $output_dir
 	trace $ssh_pre ssh $SSH_OPTS $sshalias "rm -rf $tmp_dir/netmap"
+	if [ "$ip" != "$sshalias" ]; then
+		echo "creating custom hosts file for ssh alias '$sshalias'"
+		echo -e "$ip\t$sshalias" >> $output_dir/host_${ip}_cmd_cat_etc_hosts_extra.txt
+	fi
 }
 
 set -e

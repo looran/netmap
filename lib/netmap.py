@@ -411,7 +411,7 @@ class Netmap(object):
             ("cmd",  "uptime",                   "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
             ("cmd",  "df-h",                     "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
             ("cmd",  "mount",                    "",                                                                System_commands.generic,        False,      self._process_dummy_associate),
-            ("cmd",  "cat_etc_hosts",            "",                                                                System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
+            ("cmd",  "cat_etc_hosts",            "(_extra)?",                                                       System_files_parse.etc_hosts,   False,      self._process_cmd_cat_etc_hosts),
             ("cmd",  "netmap_k8s_services_list", "",                                                                K8s_parse.netmap_service_list,  False,      self._process_cmd_netmap_k8s_services_list),
             ("cmd",  "ss-anp",                   "(_netns-(?P<netns>[-a-zA-Z0-9_]*))?",                             Iproute2_parse.ss,              True,       self._process_cmd_ss_netstat),
             ("cmd",  "netstat-anp",              "(_netns-(?P<netns>[-a-zA-Z0-9_]*))?",                             Netstat_parse.netstat,          True,       self._process_cmd_ss_netstat),
