@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# generate_data_k8s.sh - get containers network informations from the kubernetes master
+# collect_k8s.sh - get containers network informations from the kubernetes master
 # this is an example script with cryptic syntax to make it as short as possible.
 # it probably should not be run on production as it lacks checking of all sort.
 # if tcpdump mode is active, it will start lots of tcpdump in parallel.

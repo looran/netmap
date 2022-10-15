@@ -7,7 +7,7 @@ usage: $0 [-P] [-v] [-T] <output_directory> <ip|sshalias>[:k8s][:ssh_pre="SSH-CM
    -v : passed to generate_data.sh
    -T : passed to generate_data.sh
 target options:
-   k8s : use kubernetes-specific data gathering script for this target
+   k8s : use kubernetes-specific collector script for this target
    ssh_pre : prefix ssh connection with the given command for this target
    tmp_dir : use given temporary directory for this target
 environment variables:
@@ -34,7 +34,7 @@ collect() {
 			tmp_dir*) tmp_dir="$(echo $opt |cut -d= -f2-)"; ;;
 		esac
 	done < <(echo $remote_host |cut -d: -f2- |tr ':' '\n')
-	echo "[+] gathering data from $sshalias ($ip) ssh_pre='$ssh_pre' k8s=$k8s"
+	echo "[+] collecting data from $sshalias ($ip) ssh_pre='$ssh_pre' k8s=$k8s"
 	trace $ssh_pre ssh $SSH_OPTS $sshalias "mkdir -p $tmp_dir/netmap/data"
 	trace $ssh_pre scp $SSH_OPTS $D/generate_data.sh $sshalias:$tmp_dir/netmap/
 	trace $ssh_pre ssh -t $SSH_OPTS $sshalias "TCPDUMP_TIME=$TCPDUMP_TIME TCPDUMP_PACKETS=$TCPDUMP_PACKETS $tmp_dir/netmap/generate_data.sh $gendata_opts $tmp_dir/netmap/data $ip"

@@ -21,21 +21,21 @@ $ mkdir -p netmap_data/network1/
 
 **2. Gather commands output and pcap traces from the nodes in your network**
 
-2.a. On the local node, here 192.168.0.1, [generate_data.sh](data_gathering/generate_data.sh) will execute various system commands (`ip`, `ss`, ...) to get network configuration and store output in text files:
+2.a. On the local node, here 192.168.0.1, [generate_data.sh](collectors/collect.sh) will execute various system commands (`ip`, `ss`, ...) to get network configuration and store output in text files:
 ``` bash
-$ ./data_gathering/generate_data.sh netmap_data/network1/ 192.168.0.1
+$ ./collectors/collect.sh netmap_data/network1/ 192.168.0.1
 ```
 
-On Kubernetes cluster, you can use [generate_data_k8s.sh](data_gathering/generate_data_k8s.sh) which gathers informations from all your pods from the master node, to make the pods appear in the network map.
+On Kubernetes cluster, you can use [generate_data_k8s.sh](collectors/collect_k8s.sh) which collects informations from all your pods from the master node, to make the pods appear in the network map.
 
-2.b. From remote notes, [remote_generate_data.sh](data_gathering/remote_generate_data.sh) will connect via SSH to the nodes, run the above script and fetch results:
+2.b. From remote notes, [remote_generate_data.sh](collectors/remote_collect.sh) will connect via SSH to the nodes, run the above script and fetch results:
 ``` bash
-./data_gathering/remote_generate_data.sh netmap_data/network1/ 192.168.0.250 10.10.10.1
+./collectors/remote_collect.sh netmap_data/network1/ 192.168.0.250 10.10.10.1
 ```
 
-2.c. You can also gather gata from your own scripts and store the result to `netmap_data/network1/` following [Data input format](#data-input-format) naming.
+2.c. You can also collect data from your own scripts and store the result to `netmap_data/network1/` following [Data input format](#data-input-format) naming.
 
-**3. Run the command-line tool to have an overview of the gathered data**
+**3. Run the command-line tool to have an overview of the collected data**
 
 ``` bash
 $ ./netmap_cli.py netmap_data/ network1
@@ -56,8 +56,8 @@ netmap_cli.py [options] <input_data_directory> [<network_name>]
 	generate text output analysis about the network
 webserver.sh <input_data_directory>
 	start the webserver to generate an interactive graphical map of the network
-data_gathering/
-	example scripts for data gathering on local and remote hosts
+collectors/
+	example scripts for data collection on local and remote hosts
 demo_data/
 	dummy system commands output and pcap traces for demo purposes and unit tests
 flask/
@@ -73,7 +73,7 @@ test/
 
 * On monitored machines
 	* Linux with `iproute2` installed, optionally `tcpdump` and `netstat`
-	* Supports Kubernetes pods, executes commands from the master in all pods, see [generate_data_k8s.sh](data_gathering/generate_data_k8s.sh)
+	* Supports Kubernetes pods, executes commands from the master in all pods, see [generate_data_k8s.sh](collectors/collect_k8s.sh)
 * On visualisation machine (where webserver/netmap_cli runs)
 	* `python3` and `python3-flask`
 	* optionally `python3-dpkt` (`pip install dpkt`) for pcap parsing support
@@ -100,7 +100,7 @@ netmap_data/network1/host_<host_ip>_cmd_netmap_k8s_services_list.txt
 netmap_data/network1/host_<host_ip>_pcap_<interface>.pcap
 ```
 
-#### Example manual data gathering
+#### Example manual data collection
 
 On host 192.168.0.1:
 
