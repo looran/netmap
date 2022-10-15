@@ -21,14 +21,14 @@ $ mkdir -p netmap_data/network1/
 
 **2. Gather commands output and pcap traces from the nodes in your network**
 
-2.a. On the local node, here 192.168.0.1, [generate_data.sh](collectors/collect.sh) will execute various system commands (`ip`, `ss`, ...) to get network configuration and store output in text files:
+2.a. On the local node, here 192.168.0.1, [collect.sh](collectors/collect.sh) will execute various system commands (`ip`, `ss`, ...) to get network configuration and store output in text files:
 ``` bash
 $ ./collectors/collect.sh netmap_data/network1/ 192.168.0.1
 ```
 
-On Kubernetes cluster, you can use [generate_data_k8s.sh](collectors/collect_k8s.sh) which collects informations from all your pods from the master node, to make the pods appear in the network map.
+On Kubernetes cluster, you can use [collect_k8s.sh](collectors/collect_k8s.sh) which collects informations from all your pods from the master node, to make the pods appear in the network map.
 
-2.b. From remote notes, [remote_generate_data.sh](collectors/remote_collect.sh) will connect via SSH to the nodes, run the above script and fetch results:
+2.b. From remote notes, [remote_collect.sh](collectors/remote_collect.sh) will connect via SSH to the nodes, run the above script and fetch results:
 ``` bash
 ./collectors/remote_collect.sh netmap_data/network1/ 192.168.0.250 10.10.10.1
 ```
@@ -73,7 +73,7 @@ test/
 
 * On monitored machines
 	* Linux with `iproute2` installed, optionally `tcpdump` and `netstat`
-	* Supports Kubernetes pods, executes commands from the master in all pods, see [generate_data_k8s.sh](collectors/collect_k8s.sh)
+	* Supports Kubernetes pods, executes commands from the master in all pods, see [collect_k8s.sh](collectors/collect_k8s.sh)
 * On visualisation machine (where webserver/netmap_cli runs)
 	* `python3` and `python3-flask`
 	* optionally `python3-dpkt` (`pip install dpkt`) for pcap parsing support
