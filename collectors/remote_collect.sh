@@ -23,7 +23,7 @@ TMP_DIR=${TMP_DIR:-"/tmp"}
 
 collect() {
 	sshalias=$(echo $remote_host |cut -d: -f1)
-	ip=$sshalias
+	ip=$(ssh -G $sshalias |egrep -i "^hostname" |cut -d' ' -f2)
 	k8s=0
 	ssh_pre=""
     tmp_dir="$TMP_DIR"
