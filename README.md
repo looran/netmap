@@ -183,3 +183,6 @@ Passing `-d` twice increases verbosity.
 * save to named profile on server
 * color link label background depending on port, choose color dynamically
 ```
+
+![Netmap - network mapping architecture (future)](https://docs.google.com/drawings/d/e/2PACX-1vQxRSo5YK3rZoOa7cGjR7Dj1CocTuPQyN52Zv-tJJPwUihnAYsOt15G-jwqURSLV6wCqeqQ8Uj-K8gn/pub?w=1440&h=1080)<br/>
+_Netmap - network mapping architecture (future)_
